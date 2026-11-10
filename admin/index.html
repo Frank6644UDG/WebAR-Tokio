@@ -72,6 +72,7 @@
   <small style="text-align:center">Así se ve en un teléfono, con el idioma de la pestaña elegida. Toca un elemento para verlo.</small>
 </div>
 
+<script src="/admin/extra.js"></script>
 <script>
 const LANGS = { es:'Español', en:'English', ja:'日本語', zh:'中文', ko:'한국어' };
 const TYPES = { video:'Video', image:'Imagen / animación WebP', text:'Texto (paso aparte)' };
@@ -84,7 +85,7 @@ const PV = {
 };
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-let all = [], cur = null, tab = 'es', pv = 0, qrLast = null;
+let all = [], cur = null, tab = 'es', pv = 0, qrLast = null, view = 'exp';
 
 async function api(url, opts) {
   const r = await fetch(url, opts);
@@ -96,7 +97,7 @@ async function refresh(selectId) {
   cur = all.find(e => e.id === selectId) || (cur && all.find(e => e.id === cur.id)) || all[0] || null;
   render();
 }
-const blank = () => ({ name:'Nueva experiencia', targetSrc:'', silhouetteSrc:'', elements:[] });
+const blank = () => ({ name:'Nueva experiencia', targetSrc:'', silhouetteSrc:'', elements:[], page: emptyPage() });
 const status = (m) => { if ($('#status')) $('#status').textContent = m; };
 
 function fileField(k, label, accept) {
@@ -119,19 +120,40 @@ function elHtml(el, i) {
     <span><button data-up="${i}">↑</button><button data-down="${i}">↓</button><button data-del="${i}">✕</button></span></div>${body}${layers}</div>`;
 }
 function qrHtml() {
-  if (!cur.id) return '<fieldset><legend>Código QR para plantilla (stencil)</legend><p>Guarda la experiencia para poder generar su QR.</p></fieldset>';
-  return `<fieldset><legend>Código QR para plantilla (stencil)</legend>
-    <small>QR del enlace público, con puentes para que la plantilla no se desarme al cortarla. Es la zona de pintura: los cuadros negros son huecos.</small>
+  if (!cur.id) return '<fieldset><legend>Código QR</legend><p>Guarda la experiencia para poder generar su QR.</p></fieldset>';
+  return `<fieldset><legend>Código QR (stencil o vinilo)</legend>
+    <label>¿Qué enlace lleva el QR?</label>
+    <select id="q_target"><option value="piso">Experiencia, origen piso</option><option value="placa">Experiencia, origen placa</option><option value="totem">Hub (tótem)</option></select>
+    <label>Tipo de QR</label>
+    <select id="q_mode" onchange="qrToggle()"><option value="stencil">Stencil: cuadrado, para pintar con plantilla</option><option value="round">Redondo: para vinilo impreso</option></select>
+    <small id="q_help"></small>
     <div class="grid">
-      <div><label>Tamaño del QR (cm)</label><input type="number" id="q_size" value="40" min="5" max="300"></div>
-      <div><label>Ancho de puentes (% del módulo)</label><input type="number" id="q_bridge" value="30" min="15" max="50"></div>
+      <div><label id="q_size_l">Tamaño del QR (cm)</label><input type="number" id="q_size" value="40" min="5" max="300"></div>
+      <div class="q-st"><label>Ancho de puentes (% del módulo)</label><input type="number" id="q_bridge" value="30" min="15" max="50"></div>
       <div><label>Corrección de errores</label><select id="q_ecc"><option value="H">Alta (H) - recomendada</option><option value="Q">Media-alta (Q) - QR más simple</option></select></div>
+      <div class="q-rd"><label>Color de los puntos (oscuro)</label><input type="color" id="q_fg" value="#12263a"></div>
+      <div class="q-rd"><label>Color del anillo</label><input type="color" id="q_ring" value="#0b6fb3"></div>
+      <div class="q-rd"><label><input type="checkbox" id="q_fill" checked> Puntos de relleno decorativos</label><label><input type="checkbox" id="q_showring" checked> Anillo exterior</label></div>
     </div>
     <p><button class="primary" id="btnQR">Generar QR</button></p><div id="qrOut"></div></fieldset>`;
 }
+function qrToggle() {
+  const round = $('#q_mode').value === 'round';
+  document.querySelectorAll('.q-st').forEach(e => e.style.display = round ? 'none' : '');
+  document.querySelectorAll('.q-rd').forEach(e => e.style.display = round ? '' : 'none');
+  $('#q_size_l').textContent = round ? 'Diámetro total (cm)' : 'Tamaño del QR (cm)';
+  $('#q_size').value = round ? 60 : 40;
+  $('#q_help').textContent = round
+    ? 'Medallón circular con puntos redondos, para imprimir. Por dentro sigue siendo un QR cuadrado: el círculo y los puntos de relleno son decoración. Usa colores oscuros sobre el fondo blanco.'
+    : 'Cuadrado con puentes para que la plantilla no se desarme al cortarla. Los cuadros negros son huecos de pintura.';
+}
 function render() {
-  $('#list').innerHTML = all.map(e => `<button class="${cur && cur.id===e.id?'on':''}" data-id="${e.id}">${esc(e.name)}</button>`).join('');
-  document.querySelectorAll('#list button').forEach(b => b.onclick = () => { cur = all.find(e => e.id === b.dataset.id); pv = 0; render(); });
+  $('#list').innerHTML = all.map(e => `<button class="${view==='exp' && cur && cur.id===e.id?'on':''}" data-id="${e.id}">${esc(e.name)}</button>`).join('');
+  document.querySelectorAll('#list button').forEach(b => b.onclick = () => { view = 'exp'; cur = all.find(e => e.id === b.dataset.id); pv = 0; render(); });
+  $('#phoneCol').style.display = view === 'exp' ? '' : 'none';
+  if ($('#btnSite')) { $('#btnSite').classList.toggle('on', view === 'site'); $('#btnMetrics').classList.toggle('on', view === 'metrics'); }
+  if (view === 'site') return renderSite();
+  if (view === 'metrics') return renderMetrics();
   if (!cur) { $('#main').innerHTML = '<p>Crea tu primera experiencia con el botón de la izquierda.</p>'; $('#pvScreen').innerHTML = ''; return; }
   const link = cur.id ? `${location.origin}/?e=${cur.id}` : '';
   $('#main').innerHTML = `
@@ -147,6 +169,7 @@ function render() {
       ${cur.elements.map(elHtml).join('') || '<p>Aún no hay elementos.</p>'}
       <div class="add"><button data-add="video">＋ Video</button><button data-add="image">＋ Imagen / animación</button><button data-add="text">＋ Texto</button></div>
     </fieldset>
+    ${pageHtml()}
     <button class="primary" id="btnSave">Guardar</button>
     ${cur.id ? '<button class="danger" id="btnDel">Eliminar</button>' : ''}<span id="status"></span>
     <div style="height:20px"></div>${qrHtml()}`;
@@ -178,19 +201,21 @@ function render() {
   document.querySelectorAll('input[type=file]').forEach(inp => inp.onchange = async () => {
     if (!inp.files[0]) return;
     sync(); status('Subiendo…');
+    const big = /^image/.test(inp.files[0].type) && inp.files[0].size > 1500000 ? ' Aviso: la imagen pesa más de 1,5 MB; conviene reducirla para teléfonos con datos móviles.' : '';
     try {
       const fd = new FormData(); fd.append('file', inp.files[0]);
       const { url } = await api('/api/upload', { method:'POST', body: fd });
-      if (inp.dataset.k) cur[inp.dataset.k] = url; else cur.elements[+inp.dataset.el][inp.dataset.f || 'src'] = url;
-      render(); status('Archivo subido. Falta guardar.');
+      if (inp.dataset.pg) cur.page[inp.dataset.pg] = url; else if (inp.dataset.k) cur[inp.dataset.k] = url; else cur.elements[+inp.dataset.el][inp.dataset.f || 'src'] = url;
+      render(); status('Archivo subido. Falta guardar.' + big);
     } catch (e) { status('Error: ' + e.message); }
   });
+  bindPage();
   $('#btnSave').onclick = save;
   if ($('#btnDel')) $('#btnDel').onclick = async () => {
     if (!confirm('¿Eliminar esta experiencia?')) return;
     await api('/api/experiences/' + cur.id, { method:'DELETE' }); cur = null; refresh();
   };
-  if ($('#btnQR')) $('#btnQR').onclick = genQR;
+  if ($('#btnQR')) { $('#btnQR').onclick = genQR; qrToggle(); }
   if (qrLast && qrLast.id === cur.id && $('#qrOut')) $('#qrOut').innerHTML = qrLast.html;
   renderPreview();
 }
@@ -282,21 +307,26 @@ function drawScreen() {
   if (b && m) m.style.display = b.scrollHeight > b.clientHeight + 1 ? '' : 'none';
 }
 
-// ---- QR para plantilla
+// ---- QR (stencil o vinilo)
 async function genQR() {
   const out = $('#qrOut'); out.textContent = 'Generando…';
-  const size = +$('#q_size').value || 40, bridge = (+$('#q_bridge').value || 30) / 100, ecc = $('#q_ecc').value;
-  const url = `${location.origin}/?e=${cur.id}`;
+  const mode = $('#q_mode').value, round = mode === 'round';
+  const size = +$('#q_size').value || (round ? 60 : 40), bridge = (+$('#q_bridge').value || 30) / 100, ecc = $('#q_ecc').value;
+  const tg = $('#q_target').value;
+  const url = tg === 'totem' ? `${location.origin}/hub?s=totem` : `${location.origin}/?e=${cur.id}&s=${tg}`;
+  const extra = round ? `&fg=${$('#q_fg').value.slice(1)}&ringColor=${$('#q_ring').value.slice(1)}&filler=${$('#q_fill').checked ? 1 : 0}&showRing=${$('#q_showring').checked ? 1 : 0}` : '';
   try {
-    const r = await fetch(`/api/qr.svg?url=${encodeURIComponent(url)}&size=${size}&bridge=${bridge}&ecc=${ecc}`);
+    const r = await fetch(`/api/qr.svg?url=${encodeURIComponent(url)}&size=${size}&bridge=${bridge}&ecc=${ecc}&mode=${mode}${extra}`);
     if (!r.ok) throw new Error(await r.text());
-    const svg = await r.text(), n = +r.headers.get('X-QR-Modules'), br = r.headers.get('X-QR-Bridges');
-    const ok = r.headers.get('X-QR-Connected') === 'true';
+    const svg = await r.text(), hd = (k) => r.headers.get(k);
+    const n = +hd('X-QR-Modules'), cm = +hd('X-QR-Module-Cm'), side = +hd('X-QR-Side-Cm');
     const blobUrl = URL.createObjectURL(new Blob([svg], { type:'image/svg+xml' }));
-    const html = `<div class="qrbox">${svg}</div>
-      <p>${n}×${n} módulos · cada módulo mide <b>${(size/n).toFixed(2)} cm</b> · ${br} puentes de <b>${((size/n)*bridge*10).toFixed(1)} mm</b> ·
-      ${ok ? '✓ todas las piezas de la plantilla quedan unidas' : '⚠ revisa: hay piezas sueltas'}</p>
-      <p><a href="${blobUrl}" download="qr-${cur.id}.svg"><b>Descargar SVG</b></a><br><small>El trazado "corte" es la línea de corte (los huecos). Enlace codificado: ${esc(url)}</small></p>`;
+    const dist = (side / 100 * 10).toFixed(1);
+    const info = round
+      ? `${n}×${n} módulos · cada módulo mide <b>${cm} cm</b> · el QR interior mide ${side} cm de lado (lectura cómoda hasta unos ${dist} m, guía aproximada)${cm < 0.8 ? ' · ⚠ módulos pequeños: agranda el diámetro' : ''}`
+      : `${n}×${n} módulos · cada módulo mide <b>${cm} cm</b> · ${hd('X-QR-Bridges')} puentes de <b>${(cm * bridge * 10).toFixed(1)} mm</b> · ${hd('X-QR-Connected') === 'true' ? '✓ todas las piezas de la plantilla quedan unidas' : '⚠ revisa: hay piezas sueltas'}`;
+    const html = `<div class="qrbox">${svg}</div><p>${info}</p>
+      <p><a href="${blobUrl}" download="qr-${mode}-${tg}-${cur.id}.svg"><b>Descargar SVG</b></a><br><small>Enlace codificado: ${esc(url)}</small></p>`;
     qrLast = { id: cur.id, html }; out.innerHTML = html;
   } catch (e) { out.textContent = 'Error: ' + e.message; }
 }
@@ -318,6 +348,7 @@ function sync() {
       l.texts[tab] = { title: g('lt').value, body: g('lb').value };
     });
   });
+  syncPage();
 }
 async function save() {
   sync(); status('Guardando…');
@@ -328,7 +359,7 @@ async function save() {
     await refresh(saved.id); status('✓ Guardado');
   } catch (e) { status('Error: ' + e.message); }
 }
-$('#btnNew').onclick = () => { cur = blank(); tab = 'es'; pv = 0; render(); };
+$('#btnNew').onclick = () => { view = 'exp'; cur = blank(); tab = 'es'; pv = 0; render(); };
 refresh();
 </script>
 </body>
