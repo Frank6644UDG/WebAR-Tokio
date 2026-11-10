@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>AR</title>
 <link rel="stylesheet" href="style.css">
+<meta name="robots" content="noindex, nofollow">
 </head>
 <body>
 <div id="topbar"><select id="langSel" aria-label="Language"></select></div>
@@ -14,7 +15,7 @@
   <div class="card">
     <div class="icon">📷</div>
     <h1 data-i="welcomeTitle"></h1>
-    <p data-i="welcomeText"></p>
+    <p><span data-i="welcomeText"></span> <a id="privLink" href="/privacidad" data-i="privacy"></a></p>
     <button id="btnCamera" class="btn" data-i="allowCamera"></button>
     <p id="camMsg" class="msg"></p>
   </div>
@@ -60,12 +61,16 @@
 <section id="screenEnd" class="screen">
   <div class="card">
     <h1 data-i="endTitle"></h1>
-    <button id="btnRestart" class="btn" data-i="restart"></button>
+    <button id="btnHub" class="btn" data-i="toHub"></button>
+    <button id="btnRestart" class="btn ghost" data-i="restart"></button>
+    <button id="btnEndClose" class="btn ghost" data-i="close"></button>
+    <p id="endMsg"></p>
   </div>
 </section>
 
 <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+<script src="/track.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

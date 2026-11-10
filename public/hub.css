@@ -1,0 +1,67 @@
+/* ============ PANEL DE DISEÑO: cambia solo estos valores ============ */
+:root {
+  --color-acento: #0b6fb3;       /* color principal; también se cambia desde el editor (Ajustes del sitio) */
+  --color-texto: #1b1e26;
+  --color-fondo: #ffffff;
+  --color-fondo-suave: #f3f4f7;
+  --color-borde: #d8dbe2;
+  --fuente: Arial, "Hiragino Sans", "Noto Sans JP", "Noto Sans SC", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  --tamano-texto: 1rem;          /* tamaño base del texto */
+  --interlineado: 1.6;
+  --espacio: 16px;               /* separación básica */
+  --radio: 14px;                 /* esquinas redondeadas */
+  --ancho-max: 960px;            /* ancho máximo del contenido en pantallas grandes */
+}
+/* ==================================================================== */
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--color-fondo); color: var(--color-texto); font-family: var(--fuente);
+  font-size: var(--tamano-texto); line-height: var(--interlineado);
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+img { max-width: 100%; height: auto; }
+a { color: var(--color-acento); }
+:focus-visible { outline: 3px solid var(--color-acento); outline-offset: 2px; }
+
+#siteHeader { background: var(--color-fondo-suave); border-bottom: 1px solid var(--color-borde); }
+.barra { display: flex; align-items: center; justify-content: space-between; gap: var(--espacio);
+  max-width: var(--ancho-max); margin: 0 auto; padding: 10px var(--espacio); }
+#logo { max-height: 44px; width: auto; }
+#langSel { margin-left: auto; min-height: 44px; padding: 0 10px; font: inherit; border: 1px solid var(--color-borde);
+  border-radius: 10px; background: var(--color-fondo); color: var(--color-texto); }
+.portada { display: block; width: 100%; max-height: 260px; object-fit: cover; }
+.cabecera-texto { max-width: var(--ancho-max); margin: 0 auto; padding: var(--espacio); }
+.cabecera-texto h1 { margin: 0 0 8px; font-size: 1.6rem; line-height: 1.25; }
+.cabecera-texto p { margin: 0 0 8px; }
+.etiqueta { display: inline-block; padding: 2px 10px; border-radius: 999px; background: #fff3cd; color: #5c4400; font-size: .85rem; }
+.aviso { padding: 10px 14px; border-radius: var(--radio); background: var(--color-fondo); border: 1px solid var(--color-borde); }
+
+.contenedor { max-width: var(--ancho-max); margin: 0 auto; padding: var(--espacio); }
+.vacio { color: #555; }
+
+/* Tarjetas del hub. Móvil: 1 columna. Cuando tengas tu cuadrícula de 4, 8 y 12 columnas, se ajusta aquí. */
+.tarjetas { display: grid; gap: var(--espacio); grid-template-columns: 1fr; }
+@media (min-width: 640px) { .tarjetas { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 960px) { .tarjetas { grid-template-columns: repeat(3, 1fr); } }
+.tarjeta { border: 1px solid var(--color-borde); border-radius: var(--radio); overflow: hidden; background: var(--color-fondo); display: flex; flex-direction: column; }
+.tarjeta .foto { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; }
+.cuerpo { padding: var(--espacio); display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.cuerpo h2 { margin: 0; font-size: 1.2rem; line-height: 1.3; }
+.cuerpo p { margin: 0; }
+.visitado { color: #1a6b3a; font-weight: 700; }
+.acciones { display: flex; flex-wrap: wrap; gap: 10px; margin-top: auto; padding-top: 8px; }
+
+.boton { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px;
+  border-radius: 999px; background: var(--color-acento); color: #fff; text-decoration: none; font-weight: 700; }
+.boton.secundario { background: transparent; color: var(--color-acento); border: 2px solid var(--color-acento); }
+
+/* Página de punto y privacidad */
+.volver { display: inline-block; min-height: 44px; line-height: 44px; margin-bottom: 8px; }
+.foto.grande { width: 100%; border-radius: var(--radio); margin-bottom: var(--espacio); }
+.texto p { margin: 0 0 var(--espacio); }
+.pista { padding: var(--espacio); border-left: 5px solid var(--color-acento); background: var(--color-fondo-suave); border-radius: 0 var(--radio) var(--radio) 0; margin: var(--espacio) 0; }
+audio { width: 100%; margin: var(--espacio) 0; }
+
+.pie { max-width: var(--ancho-max); margin: 0 auto; padding: var(--espacio); border-top: 1px solid var(--color-borde); }
+.pie a { display: inline-block; min-height: 44px; line-height: 44px; }

@@ -9,6 +9,8 @@
   };
 
   const $ = (s) => document.querySelector(s);
+  // Medición anónima (ver track.js)
+  const track = (ev, x) => { if (window.ARTrack) window.ARTrack.track(ev, Object.assign({ lang }, exp ? { e: exp.id } : {}, x)); };
   let lang = detectLang(), exp = null, sticky = false, raf = 0;
 
   function detectLang() {
@@ -23,6 +25,7 @@
     document.documentElement.lang = lang;
     document.querySelectorAll('[data-i]').forEach((el) => (el.textContent = t(el.dataset.i)));
     $('#langSel').value = lang;
+    const pl = $('#privLink'); if (pl) pl.href = '/privacidad?l=' + lang;
   }
   function show(id) {
     document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('active', s.id === id));
@@ -36,18 +39,22 @@
 
   async function init() {
     $('#langSel').innerHTML = Object.entries(LANGS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
-    $('#langSel').onchange = (e) => { lang = e.target.value; applyI18n(); };
+    $('#langSel').onchange = (e) => { lang = e.target.value; applyI18n(); track('idioma', { d: lang }); };
     applyI18n();
     try {
       const list = await (await fetch('/api/experiences')).json();
       const id = new URLSearchParams(location.search).get('e');
       exp = list.find((e) => e.id === id) || list[0];
     } catch (e) {}
+    track('abre', { d: lang });
+    $('#privLink').onclick = () => track('privacidad');
     $('#btnCamera').onclick = askCamera;
-    document.querySelectorAll('[data-sticky]').forEach((b) => (b.onclick = () => { sticky = b.dataset.sticky === '1'; startAR(); }));
-    $('#btnRestart').onclick = startAR;
-    $('#btnX').onclick = closeAR;
-    $('#btnClose').onclick = closeAR;
+    document.querySelectorAll('[data-sticky]').forEach((b) => (b.onclick = () => { sticky = b.dataset.sticky === '1'; track('modo', { d: sticky ? 'fija' : 'sigue' }); startAR(); }));
+    $('#btnRestart').onclick = () => { track('repetir'); startAR(); };
+    $('#btnHub').onclick = () => { track('al_hub'); location.href = '/hub?from=exp&l=' + lang + (exp ? '&e=' + encodeURIComponent(exp.id) : ''); };
+    $('#btnEndClose').onclick = () => { window.close(); setTimeout(() => { $('#endMsg').textContent = t('closeTab'); }, 300); };
+    $('#btnX').onclick = () => { track('cierra', { n: idx }); closeAR(); };
+    $('#btnClose').onclick = () => { const last = exp && idx >= (exp.elements || []).length - 1; track(last ? 'completa' : 'cierra', { n: idx }); if (last) markVisited(); closeAR(); };
     $('#btnMore').onclick = openMore;
     $('#btnModalClose').onclick = closeMore;
   }
@@ -60,7 +67,8 @@
     try {
       const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
       s.getTracks().forEach((tr) => tr.stop());
-    } catch (e) { msg.textContent = t('camDenied'); return; }
+      track('camara_ok');
+    } catch (e) { track('camara_no', { d: String((e && e.name) || '') }); msg.textContent = t('camDenied'); return; }
     lang = detectLang();
     applyI18n();
     show('screenSticky');
@@ -70,7 +78,22 @@
   // El objetivo solo dispara; todo se muestra a pantalla completa.
   const NEXT = { es: 'Siguiente', en: 'Next', ja: '次へ', zh: '下一步', ko: '다음' };
   Object.keys(NEXT).forEach((k) => (UI[k].next = NEXT[k]));
-  let curEl = null, txSrc = null, idx = -1, started = false;
+  const EXTRA = {
+    es: { toHub: 'Descubre otros puntos', privacy: 'Datos y privacidad', closeTab: 'Ya puedes cerrar esta pestaña.' },
+    en: { toHub: 'Discover other points', privacy: 'Data and privacy', closeTab: 'You can now close this tab.' },
+    ja: { toHub: '他のスポットを見る', privacy: 'データとプライバシー', closeTab: 'このタブを閉じて構いません。' },
+    zh: { toHub: '查看其他地点', privacy: '数据与隐私', closeTab: '现在可以关闭此标签页。' },
+    ko: { toHub: '다른 장소 보기', privacy: '데이터 및 개인정보', closeTab: '이제 이 탭을 닫아도 됩니다.' }
+  };
+  Object.keys(EXTRA).forEach((k) => Object.assign(UI[k], EXTRA[k]));
+  // Marca local de «visitado» para el hub (solo en este teléfono)
+  function markVisited() {
+    try {
+      const a = JSON.parse(localStorage.getItem('ar-visitados') || '[]');
+      if (exp && !a.includes(exp.id)) { a.push(exp.id); localStorage.setItem('ar-visitados', JSON.stringify(a)); }
+    } catch (e) {}
+  }
+  let curEl = null, txSrc = null, idx = -1, started = false, silT = 0, readyT = 0, missT = 0;
   let sceneT = 0, lastTs = 0, paused = false, vEnded = false, mediaReady = false, shown = -2;
   const vid = document.createElement('video');
   vid.playsInline = true; vid.setAttribute('webkit-playsinline', '');
@@ -108,6 +131,9 @@
     show('screenAR');
     cancelAnimationFrame(raf);
     idx = -1; started = false; curEl = null; unlockAudio();
+    silT = performance.now(); readyT = 0; clearTimeout(missT);
+    missT = setTimeout(() => { if (!started) track('sin_reconocer'); }, 15000);
+    track('silueta');
     $('#silImg').src = exp.silhouetteSrc || '';
     $('#silImg').style.display = exp.silhouetteSrc ? '' : 'none';
     hide(['#textPanel', '#modal', '#stage', '#btnNextF', '#btnSound']);
@@ -126,21 +152,21 @@
       </a-scene>`;
     const scene = holder.querySelector('a-scene');
     const target = holder.querySelector('#target');
-    scene.addEventListener('arReady', () => $('#loading').classList.add('hidden'));
-    scene.addEventListener('arError', () => { $('#loading').textContent = t('notReady'); });
+    scene.addEventListener('arReady', () => { readyT = performance.now(); $('#loading').classList.add('hidden'); });
+    scene.addEventListener('arError', () => { track('error', { d: 'ar' }); $('#loading').textContent = t('notReady'); });
     target.addEventListener('targetFound', () => {
       $('#silhouette').classList.add('hidden');
-      if (!started) { started = true; next(); }
+      if (!started) { started = true; clearTimeout(missT); track('objetivo', { n: Math.round(performance.now() - (readyT || silT)) }); next(); }
     });
-    target.addEventListener('targetLost', () => { if (!sticky && started) resetExp(); });
+    target.addEventListener('targetLost', () => { if (started) track('objetivo_perdido'); if (!sticky && started) resetExp(); });
   }
 
   function next() {
     const els = exp.elements || [];
     cancelAnimationFrame(raf);
     idx++;
-    if (idx >= els.length) return closeAR();
-    curEl = els[idx]; txSrc = null; shown = -2; paused = false;
+    if (idx >= els.length) { track('completa'); markVisited(); return closeAR(); }
+    curEl = els[idx]; txSrc = null; shown = -2; paused = false; track('escena', { n: idx });
     vEnded = false; mediaReady = false; sceneT = 0; lastTs = 0;
     const last = idx === els.length - 1;
     const stage = $('#stage');
@@ -154,7 +180,7 @@
       stage.innerHTML = ''; stage.appendChild(vid);
       vid.src = pickSrc(curEl) || ''; vid.muted = false;
       vid.onended = () => { vEnded = true; sceneT = vid.duration || sceneT; };
-      vid.onerror = () => { vEnded = true; };
+      vid.onerror = () => { track('error', { d: 'video' }); vEnded = true; };
       mediaReady = true;
       vid.play().catch(() => { vid.muted = true; vid.play().catch(() => {}); });
     } else {
@@ -220,6 +246,7 @@
 
   // "Leer más" pausa la escena mientras el visitante lee
   function openMore() {
+    track('leer_mas', { n: idx });
     const x = getText();
     $('#modalTitle').textContent = x.title;
     $('#modalBody').textContent = x.body;
