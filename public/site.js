@@ -1,14 +1,13 @@
 // Páginas informativas (canal página): hub, página de punto y privacidad.
-// El contenido sale del editor (/api/site). Para rediseñar una página basta con conservar los elementos con id
-// (ver README, sección «Qué no hay que borrar»).
+// El contenido sale del editor (/api/site). La composición de la página de punto es fija; solo cambian imágenes y textos.
 (() => {
   const LANGS = { es: 'Español', en: 'English', ja: '日本語', zh: '中文', ko: '한국어' };
   const T = {
-    es: { hubTitle: 'Puntos de experiencia', hubIntro: 'Texto de introducción provisional.', seeMore: 'Ver más', visited: 'Visitado', howTo: 'Cómo llegar', hint: 'Dónde buscar la señal', back: 'Volver al hub', thanks: 'Gracias por visitarnos. Aquí están los otros puntos.', noPoints: 'Aún no hay puntos publicados.', privacy: 'Datos y privacidad', listen: 'Escuchar', notFound: 'No se encontró este punto.', draft: 'Borrador pendiente de aprobación', test: 'Contenido de prueba', noText: 'Texto largo provisional de la página del punto.' },
-    en: { hubTitle: 'Experience points', hubIntro: 'Placeholder introduction text.', seeMore: 'See more', visited: 'Visited', howTo: 'Get directions', hint: 'Where to find the sign', back: 'Back to hub', thanks: 'Thanks for visiting. Here are the other points.', noPoints: 'No points published yet.', privacy: 'Data and privacy', listen: 'Listen', notFound: 'Point not found.', draft: 'Draft pending approval', test: 'Test content', noText: 'Placeholder long text for this point page.' },
-    ja: { hubTitle: '体験スポット', hubIntro: '仮の紹介文です。', seeMore: '詳しく見る', visited: '訪問済み', howTo: '行き方', hint: '案内表示の場所', back: 'ハブに戻る', thanks: 'ご来訪ありがとうございました。他のスポットはこちら。', noPoints: 'まだ公開されたスポットはありません。', privacy: 'データとプライバシー', listen: '音声を聞く', notFound: 'スポットが見つかりません。', draft: '承認待ちの下書き', test: 'テスト用コンテンツ', noText: 'このスポットページの仮の長文です。' },
-    zh: { hubTitle: '体验点', hubIntro: '临时介绍文字。', seeMore: '了解更多', visited: '已访问', howTo: '导航前往', hint: '指示牌位置', back: '返回中心页', thanks: '感谢参观，这里是其他地点。', noPoints: '尚无已发布的地点。', privacy: '数据与隐私', listen: '收听', notFound: '未找到该地点。', draft: '待批准的草稿', test: '测试内容', noText: '该地点页面的临时长文本。' },
-    ko: { hubTitle: '체험 장소', hubIntro: '임시 소개 문구입니다.', seeMore: '자세히 보기', visited: '방문함', howTo: '길 안내', hint: '표지 위치', back: '허브로 돌아가기', thanks: '방문해 주셔서 감사합니다. 다른 장소는 여기에 있습니다.', noPoints: '아직 공개된 장소가 없습니다.', privacy: '데이터 및 개인정보', listen: '듣기', notFound: '장소를 찾을 수 없습니다.', draft: '승인 대기 중인 초안', test: '테스트 콘텐츠', noText: '이 장소 페이지의 임시 긴 글입니다.' }
+    es: { menu: 'Menú', menuHub: 'Todos los puntos', hubTitle: 'Puntos de experiencia', hubIntro: 'Texto de introducción provisional.', seeMore: 'Ver más', visited: 'Visitado', howTo: 'Cómo llegar', hint: 'Dónde buscar la señal', back: 'Volver al hub', thanks: 'Gracias por visitarnos. Aquí están los otros puntos.', noPoints: 'Aún no hay puntos publicados.', privacy: 'Datos y privacidad', listen: 'Escuchar', notFound: 'No se encontró este punto.', draft: 'Borrador pendiente de aprobación', test: 'Contenido de prueba', noText: 'Texto largo provisional de la página del punto.' },
+    en: { menu: 'Menu', menuHub: 'All points', hubTitle: 'Experience points', hubIntro: 'Placeholder introduction text.', seeMore: 'See more', visited: 'Visited', howTo: 'Get directions', hint: 'Where to find the sign', back: 'Back to hub', thanks: 'Thanks for visiting. Here are the other points.', noPoints: 'No points published yet.', privacy: 'Data and privacy', listen: 'Listen', notFound: 'Point not found.', draft: 'Draft pending approval', test: 'Test content', noText: 'Placeholder long text for this point page.' },
+    ja: { menu: 'メニュー', menuHub: 'すべてのスポット', hubTitle: '体験スポット', hubIntro: '仮の紹介文です。', seeMore: '詳しく見る', visited: '訪問済み', howTo: '行き方', hint: '案内表示の場所', back: 'ハブに戻る', thanks: 'ご来訪ありがとうございました。他のスポットはこちら。', noPoints: 'まだ公開されたスポットはありません。', privacy: 'データとプライバシー', listen: '音声を聞く', notFound: 'スポットが見つかりません。', draft: '承認待ちの下書き', test: 'テスト用コンテンツ', noText: 'このスポットページの仮の長文です。' },
+    zh: { menu: '菜单', menuHub: '所有地点', hubTitle: '体验点', hubIntro: '临时介绍文字。', seeMore: '了解更多', visited: '已访问', howTo: '导航前往', hint: '指示牌位置', back: '返回中心页', thanks: '感谢参观，这里是其他地点。', noPoints: '尚无已发布的地点。', privacy: '数据与隐私', listen: '收听', notFound: '未找到该地点。', draft: '待批准的草稿', test: '测试内容', noText: '该地点页面的临时长文本。' },
+    ko: { menu: '메뉴', menuHub: '모든 장소', hubTitle: '체험 장소', hubIntro: '임시 소개 문구입니다.', seeMore: '자세히 보기', visited: '방문함', howTo: '길 안내', hint: '표지 위치', back: '허브로 돌아가기', thanks: '방문해 주셔서 감사합니다. 다른 장소는 여기에 있습니다.', noPoints: '아직 공개된 장소가 없습니다.', privacy: '데이터 및 개인정보', listen: '듣기', notFound: '장소를 찾을 수 없습니다.', draft: '승인 대기 중인 초안', test: '테스트 콘텐츠', noText: '이 장소 페이지의 임시 긴 글입니다.' }
   };
   // Borradores provisionales del texto de privacidad (se reemplazan desde el editor)
   const DRAFT = {
@@ -52,71 +51,125 @@
   const split = (text) => String(text || '').split(/\n\s*\n/).map((s) => s.trim()).filter(Boolean);
   const visited = () => { try { return JSON.parse(localStorage.getItem('ar-visitados') || '[]'); } catch (e) { return []; } };
   const mapsUrl = (p) => 'https://www.google.com/maps/search/?api=1&query=' + p.lat + ',' + p.lng;
-  const badge = (on) => { const b = $('#testBadge'); b.textContent = t('test'); b.hidden = !on; };
+  const caja = (cls) => el('section', 'caja' + (cls ? ' ' + cls : ''));
+  const spacer = () => el('div', 'espaciador');
+  const directions = (pg, cls) => { const go = el('a', cls, t('howTo')); go.href = mapsUrl(pg); go.target = '_blank'; go.rel = 'noopener'; return go; };
+  const hasCoords = (pg) => pg.lat !== null && pg.lat !== undefined && pg.lng !== null && pg.lng !== undefined;
+
+  // Cabecera común: logo, menú, idioma y colores
+  function shell(s) {
+    const logo = $('#logo'), lt = $('#logoText');
+    if (s.logo) { logo.src = s.logo; logo.hidden = false; lt.textContent = ''; }
+    else { logo.hidden = true; lt.textContent = pick(s.hubTitle) || t('hubTitle'); }
+    $('#logoLink').href = '/hub?l=' + lang;
+    $('#navHub').textContent = t('menuHub'); $('#navHub').href = '/hub?l=' + lang;
+    $('#navPriv').textContent = t('privacy'); $('#navPriv').href = '/privacidad?l=' + lang;
+    $('#menuBtnLabel').textContent = t('menu'); $('#mainNav').setAttribute('aria-label', t('menu'));
+    $('#privLink').textContent = t('privacy'); $('#privLink').href = '/privacidad?l=' + lang;
+    document.documentElement.style.setProperty('--color-acento', s.accent || '#0b6fb3');
+    document.documentElement.style.setProperty('--color-fondo-pagina', s.bgColor || '#eef1f6');
+  }
+
+  function banner(src, alt, id) {
+    const b = el('section', 'banner');
+    const img = el('img', 'banner-img'); img.id = id || 'bannerImg'; img.src = src; img.alt = alt || ''; b.appendChild(img);
+    return b;
+  }
 
   function renderHub(s, box) {
     const title = pick(s.hubTitle), intro = pick(s.hubIntro);
-    $('#siteTitle').textContent = title || t('hubTitle');
-    $('#siteIntro').textContent = intro || t('hubIntro');
-    badge(!title || !intro);
-    $('#thanks').hidden = q.get('from') !== 'exp';
-    $('#thanks').textContent = t('thanks');
-    if (!data.points.length) { box.appendChild(el('p', 'vacio', t('noPoints'))); return; }
+    if (s.headerImage) { box.appendChild(banner(s.headerImage, '')); box.appendChild(spacer()); }
+    const head = caja('intro');
+    if (!title || !intro) head.appendChild(el('p', 'etiqueta', t('test')));
+    head.appendChild(el('h1', '', title || t('hubTitle')));
+    head.appendChild(el('p', '', intro || t('hubIntro')));
+    if (q.get('from') === 'exp') head.appendChild(el('p', 'aviso', t('thanks')));
+    box.appendChild(head);
+    if (!data.points.length) { box.appendChild(caja()).appendChild(el('p', 'vacio', t('noPoints'))); return; }
     const seen = visited(), grid = el('div', 'tarjetas');
     data.points.forEach((pt) => {
-      const pg = pt.page, name = pick(pg.title) || pt.name, card = el('article', 'tarjeta');
-      if (pg.photo) { const img = el('img', 'foto'); img.src = pg.photo; img.alt = name; img.loading = 'lazy'; card.appendChild(img); }
+      const pg = pt.page, name = pick(pg.title) || pt.name, card = el('article', 'tarjeta'), photo = pg.photo || pg.banner;
+      if (photo) { const img = el('img', 'foto'); img.src = photo; img.alt = ''; img.loading = 'lazy'; card.appendChild(img); }
       const body = el('div', 'cuerpo');
       body.appendChild(el('h2', '', name));
       const sh = pick(pg.short); if (sh) body.appendChild(el('p', '', sh));
       if (seen.includes(pt.id)) body.appendChild(el('p', 'visitado', '✓ ' + t('visited')));
       const act = el('div', 'acciones');
       const more = el('a', 'boton', t('seeMore')); more.href = '/punto?e=' + encodeURIComponent(pt.id) + '&l=' + lang; act.appendChild(more);
-      if (pg.lat !== null && pg.lng !== null) { const go = el('a', 'boton secundario', t('howTo')); go.href = mapsUrl(pg); go.target = '_blank'; go.rel = 'noopener'; act.appendChild(go); }
+      if (hasCoords(pg)) act.appendChild(directions(pg, 'boton secundario'));
       body.appendChild(act); card.appendChild(body); grid.appendChild(card);
     });
     box.appendChild(grid);
   }
 
+  // Página de punto: composición fija. Banner, tres bloques, video y cierre. Lo vacío no se muestra.
   function renderPunto(s, box) {
-    const back = el('a', 'volver', '← ' + t('back')); back.href = '/hub?l=' + lang; box.appendChild(back);
     const pt = data.points.find((p) => p.id === q.get('e'));
-    if (!pt) { $('#siteTitle').textContent = ''; box.appendChild(el('p', 'vacio', t('notFound'))); badge(false); return; }
-    const pg = pt.page, name = pick(pg.title) || pt.name, long = split(pick(pg.long));
-    $('#siteTitle').textContent = name; document.title = name;
-    $('#siteIntro').textContent = pick(pg.short);
-    badge(!long.length);
-    if (pg.photo) { const img = el('img', 'foto grande'); img.src = pg.photo; img.alt = name; box.appendChild(img); }
-    const txt = el('div', 'texto'); paras(long.length ? long : [t('noText')], txt); box.appendChild(txt);
+    if (!pt) { box.appendChild(caja()).appendChild(el('p', 'vacio', t('notFound'))); return; }
+    const pg = pt.page, name = pick(pg.title) || pt.name;
+    const blocks = (pg.blocks || []).filter((b) => b.img || pick(b.title) || pick(b.text));
+    const closing = split(pick(pg.closing) || pick(pg.long));
+    document.title = name;
+
+    const ban = banner(pg.banner || '', pick(pg.bannerAlt));
+    if (!pg.banner) ban.removeChild(ban.firstChild);
+    const bt = el('div', 'banner-texto'); bt.appendChild(el('h1', '', name));
+    const sh = pick(pg.short); if (sh) bt.appendChild(el('p', '', sh));
+    ban.appendChild(bt); box.appendChild(ban); box.appendChild(spacer());
+
+    if (!pg.banner && !blocks.length && !closing.length && !pg.video) {
+      const c = caja(); c.appendChild(el('p', 'etiqueta', t('test'))); c.appendChild(el('p', '', t('noText'))); box.appendChild(c);
+    }
+    if (blocks.length) {
+      const sec = el('section', 'bloques');
+      blocks.forEach((b) => {
+        const art = el('article', 'bloque' + (b.img ? '' : ' sin-imagen')), title = pick(b.title);
+        if (b.img) { const m = el('div', 'bloque-media'), i = el('img'); i.src = b.img; i.alt = pick(b.alt) || title || ''; i.loading = 'lazy'; m.appendChild(i); art.appendChild(m); }
+        const tx = el('div', 'bloque-texto');
+        if (title) tx.appendChild(el('h2', '', title));
+        paras(split(pick(b.text)), tx); art.appendChild(tx); sec.appendChild(art);
+      });
+      box.appendChild(sec);
+    }
+    if (pg.video) {
+      const vs = caja('video-caja'), v = el('video'); v.controls = true; v.preload = 'metadata'; v.setAttribute('playsinline', '');
+      if (pg.videoPoster) v.poster = pg.videoPoster;
+      v.src = pg.video; vs.appendChild(v); box.appendChild(vs);
+    }
     const hint = pick(pg.hint);
-    if (hint) { const h = el('aside', 'pista'); h.appendChild(el('strong', '', t('hint') + ': ')); h.appendChild(document.createTextNode(hint)); box.appendChild(h); }
-    if (pg.audio) { const a = el('audio'); a.controls = true; a.src = pg.audio; a.setAttribute('aria-label', t('listen')); box.appendChild(a); }
-    if (pg.lat !== null && pg.lng !== null) { const go = el('a', 'boton', t('howTo')); go.href = mapsUrl(pg); go.target = '_blank'; go.rel = 'noopener'; box.appendChild(go); }
+    if (closing.length || hint || pg.audio || hasCoords(pg)) {
+      const c = caja('cierre');
+      paras(closing, c);
+      if (hint) { const h = el('aside', 'pista'); h.appendChild(el('strong', '', t('hint') + ': ')); h.appendChild(document.createTextNode(hint)); c.appendChild(h); }
+      if (pg.audio) { const a = el('audio'); a.controls = true; a.src = pg.audio; a.setAttribute('aria-label', t('listen')); c.appendChild(a); }
+      if (hasCoords(pg)) c.appendChild(directions(pg, 'boton'));
+      box.appendChild(c);
+    }
+    const back = el('a', 'volver', '← ' + t('back')); back.href = '/hub?l=' + lang; box.appendChild(back);
   }
 
   function renderPriv(s, box) {
-    $('#siteTitle').textContent = t('privacy'); document.title = t('privacy');
-    $('#siteIntro').textContent = '';
-    const own = split(pick(s.privacy));
-    badge(false);
-    if (!own.length) { const d = el('p', 'etiqueta', t('draft')); box.appendChild(d); }
-    const txt = el('div', 'texto'); paras(own.length ? own : (DRAFT[lang] || DRAFT.en), txt); box.appendChild(txt);
+    document.title = t('privacy');
+    const own = split(pick(s.privacy)), c = caja();
+    if (!own.length) c.appendChild(el('p', 'etiqueta', t('draft')));
+    c.appendChild(el('h1', '', t('privacy')));
+    paras(own.length ? own : (DRAFT[lang] || DRAFT.en), c);
+    box.appendChild(c);
     const back = el('a', 'volver', '← ' + t('back')); back.href = '/hub?l=' + lang; box.appendChild(back);
   }
 
   function render() {
     document.documentElement.lang = lang;
     const s = data.settings || {};
-    document.documentElement.style.setProperty('--color-acento', s.accent || '#0b6fb3');
-    const logo = $('#logo'); if (s.logo) { logo.src = s.logo; logo.hidden = false; }
-    const hero = $('#headerImg'); if (PAGE === 'hub' && s.headerImage) { hero.src = s.headerImage; hero.hidden = false; }
-    $('#privLink').textContent = t('privacy'); $('#privLink').href = '/privacidad?l=' + lang;
+    shell(s);
     const box = $('#content'); box.textContent = '';
     ({ hub: renderHub, punto: renderPunto, privacidad: renderPriv })[PAGE](s, box);
     $('#langSel').value = lang;
+    if (window.ARFx) window.ARFx.init(s);
   }
 
   async function init() {
+    document.documentElement.classList.add('js');
     const sel = $('#langSel');
     Object.entries(LANGS).forEach(([k, v]) => { const o = el('option', '', v); o.value = k; sel.appendChild(o); });
     sel.onchange = () => {
@@ -125,6 +178,10 @@
       if (window.ARTrack) window.ARTrack.track('idioma', { ch: 'pagina', d: lang, lang });
       render();
     };
+    const hd = $('#siteHeader'), mb = $('#menuBtn');
+    const closeMenu = () => { hd.classList.remove('abierto'); mb.setAttribute('aria-expanded', 'false'); };
+    mb.addEventListener('click', () => { const o = !hd.classList.contains('abierto'); hd.classList.toggle('abierto', o); mb.setAttribute('aria-expanded', String(o)); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && hd.classList.contains('abierto')) { closeMenu(); mb.focus(); } });
     try { data = await (await fetch('/api/site')).json(); } catch (e) {}
     render();
     if (window.ARTrack) window.ARTrack.track('pagina', { ch: 'pagina', d: PAGE, lang });
