@@ -200,6 +200,8 @@ app.get('/api/backup.zip', auth, async (req, res) => {
 
 // ---- Páginas del hub (direcciones limpias)
 const page = (n) => (req, res) => res.sendFile(path.join(__dirname, 'public', n + '.html'));
+// La dirección principal es el hub; los enlaces de experiencia (con ?e=ID) siguen abriendo el visor
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', req.query.e ? 'index.html' : 'hub.html')));
 app.get('/hub', page('hub'));
 app.get('/privacidad', page('privacidad'));
 app.get('/punto', page('punto'));

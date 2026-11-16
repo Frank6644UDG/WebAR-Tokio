@@ -2,6 +2,11 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/). Numeración semántica. Las fechas se toman del historial de GitHub.
 
+## [0.8.1] - fecha por completar
+### Cambiado
+- La dirección principal del sitio abre el hub y no una experiencia. Los enlaces con `?e=ID` siguen abriendo el visor, así que los QR de experiencia no cambian.
+- El QR del tótem codifica la dirección principal con la etiqueta de origen (`/?s=totem`), que es más corta.
+
 ## [0.8.0] - fecha por completar
 ### Añadido
 - Página de punto con composición fija: cabecera con logo centrado y menú hamburguesa, banner con pendiente, tres bloques de imagen y texto, video y cierre.

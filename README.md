@@ -1,4 +1,4 @@
-# Plataforma de experiencias de RA, versión 0.8.0
+# Plataforma de experiencias de RA, versión 0.8.1
 
 Dos canales en un mismo sistema:
 - **Canal experiencia** (`/`): visor de realidad aumentada. Motor: [MindAR](https://github.com/hiukim/mind-ar-js) (código abierto) sobre A-Frame.
@@ -9,8 +9,9 @@ Editor en `/admin` (usuario cualquiera, contraseña = `ADMIN_PASSWORD`). El hist
 ## Direcciones
 | Dirección | Qué es |
 |---|---|
-| `/?e=ID&s=piso` | Experiencia. `s` es el origen del QR: `piso`, `placa` o `totem` |
-| `/hub?s=totem` | Hub (QR del tótem) |
+| `/` | **Hub** (dirección principal). El QR del tótem es `/?s=totem` |
+| `/?e=ID&s=piso` | Experiencia (si la dirección lleva `e`, se abre el visor). `s` es el origen del QR: `piso`, `placa` o `totem` |
+| `/hub` | Mismo hub, con una dirección explícita |
 | `/punto?e=ID` | Página de un punto (se abre desde el hub) |
 | `/privacidad` | Datos y privacidad (enlace en la pantalla del permiso de cámara) |
 | `/admin` | Editor, ajustes del sitio, medición y respaldo |
@@ -86,6 +87,7 @@ Todo es opcional: lo que está vacío no se muestra, o aparece un texto provisio
 Editor → *Ajustes del sitio* → **Descargar respaldo (.zip)**: datos (experiencias, ajustes, mediciones) y archivos subidos. Todavía no hay un botón para restaurarlo.
 
 ## Lista de comprobación de la 0.8.0 (en dos teléfonos reales, uno iPhone y otro Android)
+0. Abrir la dirección principal (`/`): debe verse el hub, no una experiencia.
 1. Subir una imagen de banner y de cada bloque en una experiencia, marcar «Mostrar en el hub», guardar y abrir **Ver la página del punto**.
 2. En teléfono: cabecera con logo al centro, menú hamburguesa (abre, cierra con «Escape» o al tocar de nuevo) y selector de idioma visible.
 3. Dejar un bloque vacío y comprobar que desaparece; poner textos de distinta longitud y comprobar que las cajas miden lo mismo.
