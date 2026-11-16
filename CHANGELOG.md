@@ -2,6 +2,18 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/). Numeración semántica. Las fechas se toman del historial de GitHub.
 
+## [0.8.0] - fecha por completar
+### Añadido
+- Página de punto con composición fija: cabecera con logo centrado y menú hamburguesa, banner con pendiente, tres bloques de imagen y texto, video y cierre.
+- Bloques vacíos que se ocultan y cajas de texto del mismo tamaño.
+- Fondo detrás de toda la página con tres modos: ninguno, estático y parallax (en teléfono solo estático); respeta «reducir movimiento».
+- Campos del editor por hueco de imagen, con avisos de peso, proporción y formato, y texto alternativo por idioma.
+- Ajustes del sitio: imágenes de fondo (teléfono y escritorio), color de fondo y efecto por dispositivo.
+- Enlace «Ver la página del punto» en el editor y archivo `docs/historial-versiones-plataforma.xlsx`.
+### Cambiado
+- Hub y página de privacidad usan la misma cabecera y el mismo fondo.
+- La foto de la tarjeta del hub usa el banner si no se sube otra.
+
 ## [0.7.0] - fecha por completar
 ### Añadido
 - Medición anónima propia, con resumen en el editor y descarga en CSV (hora universal y hora local).
