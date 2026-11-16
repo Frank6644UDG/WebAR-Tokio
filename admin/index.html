@@ -54,6 +54,7 @@
   .layers{margin-top:12px;padding-top:8px;border-top:1px dashed #c9ced8}
   .layer{border:1px solid #e1e4ea;border-left:4px solid #6c8cff;border-radius:8px;padding:10px;margin:10px 0;background:#fff}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  fieldset.sub{background:#fafbfc;margin:12px 0}
   @media(max-width:900px){body{flex-direction:column}aside{width:100%}#phoneCol{position:static;width:100%}}
 </style>
 </head>
@@ -201,11 +202,11 @@ function render() {
   document.querySelectorAll('input[type=file]').forEach(inp => inp.onchange = async () => {
     if (!inp.files[0]) return;
     sync(); status('Subiendo…');
-    const big = /^image/.test(inp.files[0].type) && inp.files[0].size > 1500000 ? ' Aviso: la imagen pesa más de 1,5 MB; conviene reducirla para teléfonos con datos móviles.' : '';
+    const big = await slotWarn(inp);
     try {
       const fd = new FormData(); fd.append('file', inp.files[0]);
       const { url } = await api('/api/upload', { method:'POST', body: fd });
-      if (inp.dataset.pg) cur.page[inp.dataset.pg] = url; else if (inp.dataset.k) cur[inp.dataset.k] = url; else cur.elements[+inp.dataset.el][inp.dataset.f || 'src'] = url;
+      if (inp.dataset.pgb !== undefined) cur.page.blocks[+inp.dataset.pgb].img = url; else if (inp.dataset.pg) cur.page[inp.dataset.pg] = url; else if (inp.dataset.k) cur[inp.dataset.k] = url; else cur.elements[+inp.dataset.el][inp.dataset.f || 'src'] = url;
       render(); status('Archivo subido. Falta guardar.' + big);
     } catch (e) { status('Error: ' + e.message); }
   });
