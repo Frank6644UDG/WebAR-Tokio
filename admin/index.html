@@ -314,7 +314,7 @@ async function genQR() {
   const mode = $('#q_mode').value, round = mode === 'round';
   const size = +$('#q_size').value || (round ? 60 : 40), bridge = (+$('#q_bridge').value || 30) / 100, ecc = $('#q_ecc').value;
   const tg = $('#q_target').value;
-  const url = tg === 'totem' ? `${location.origin}/hub?s=totem` : `${location.origin}/?e=${cur.id}&s=${tg}`;
+  const url = tg === 'totem' ? `${location.origin}/?s=totem` : `${location.origin}/?e=${cur.id}&s=${tg}`;
   const extra = round ? `&fg=${$('#q_fg').value.slice(1)}&ringColor=${$('#q_ring').value.slice(1)}&filler=${$('#q_fill').checked ? 1 : 0}&showRing=${$('#q_showring').checked ? 1 : 0}` : '';
   try {
     const r = await fetch(`/api/qr.svg?url=${encodeURIComponent(url)}&size=${size}&bridge=${bridge}&ecc=${ecc}&mode=${mode}${extra}`);
