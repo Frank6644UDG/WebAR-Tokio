@@ -1,0 +1,128 @@
+{
+  "siteSlug": "Cocula, Cuna del Mariachi",
+  "headerImage": "/uploads/1794823026937-5afcf310.webp",
+  "logo": "/uploads/1794826789424-78678719.webp",
+  "footerLogo": "",
+  "headerBg": "#000000",
+  "headerColor": "#ffffff",
+  "accent": "#ffffff",
+  "ctaBg": "#f9ba0d",
+  "ctaColor": "#000000",
+  "secBg": "#ffffff",
+  "secColor": "#f9ba0d",
+  "arCtaBg": "#f9ba0d",
+  "arCtaColor": "#000000",
+  "arSecBg": "#f9ba0d",
+  "arSecColor": "#ffffff",
+  "fontFamily": "Noto Sans",
+  "bgColor": "#ffffff",
+  "bgMobile": "",
+  "bgDesktop": "",
+  "fxMobile": "estatico",
+  "fxDesktop": "parallax",
+  "timezone": "America/Mexico_City",
+  "hubTitle": {
+    "es": "¡Bienvenido a Cocula!",
+    "en": "",
+    "ja": "",
+    "zh": "",
+    "ko": ""
+  },
+  "hubIntro": {
+    "es": "¡Bienvenido a Cocula! Un encantador Pueblo Mágico de Jalisco, conocido como la cuna mundial del mariachi, el género musical que le ha dado identidad sonora a México y que la Unesco ha reconocido como Patrimonio Cultural de la Humanidad.",
+    "en": "",
+    "ja": "",
+    "zh": "",
+    "ko": ""
+  },
+  "guideTitle": {
+    "es": "",
+    "en": "",
+    "ja": "",
+    "zh": "",
+    "ko": ""
+  },
+  "guideSteps": [
+    {
+      "img": "",
+      "title": {
+        "es": "",
+        "en": "",
+        "ja": "",
+        "zh": "",
+        "ko": ""
+      },
+      "text": {
+        "es": "",
+        "en": "",
+        "ja": "",
+        "zh": "",
+        "ko": ""
+      }
+    },
+    {
+      "img": "",
+      "title": {
+        "es": "",
+        "en": "",
+        "ja": "",
+        "zh": "",
+        "ko": ""
+      },
+      "text": {
+        "es": "",
+        "en": "",
+        "ja": "",
+        "zh": "",
+        "ko": ""
+      }
+    },
+    {
+      "img": "",
+      "title": {
+        "es": "",
+        "en": "",
+        "ja": "",
+        "zh": "",
+        "ko": ""
+      },
+      "text": {
+        "es": "",
+        "en": "",
+        "ja": "",
+        "zh": "",
+        "ko": ""
+      }
+    }
+  ],
+  "mapTitle": {
+    "es": "",
+    "en": "",
+    "ja": "",
+    "zh": "",
+    "ko": ""
+  },
+  "mapIframe": "",
+  "hubClosing": {
+    "es": "",
+    "en": "",
+    "ja": "",
+    "zh": "",
+    "ko": ""
+  },
+  "faqTitle": {
+    "es": "",
+    "en": "",
+    "ja": "",
+    "zh": "",
+    "ko": ""
+  },
+  "faqList": [],
+  "privacy": {
+    "es": "",
+    "en": "",
+    "ja": "",
+    "zh": "",
+    "ko": ""
+  }
+}
