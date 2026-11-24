@@ -1,6 +1,6 @@
 {
   "name": "ar-tokyo",
-  "version": "0.8.1",
+  "version": "0.12.0",
   "description": "Plataforma web de experiencias de realidad aumentada (RA) y páginas informativas",
   "main": "server.js",
   "scripts": {

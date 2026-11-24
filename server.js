@@ -67,10 +67,32 @@ function normalize(e) {
   e.page = cleanPage(e.page);
   return e;
 }
+const hexOr = (v, d) => (/^#[0-9a-f]{6}$/i.test(String(v || '')) ? String(v) : d);
+const clampNum = (v, d, lo, hi) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d;
+};
+const cleanBoxStyle = (s = {}) => ({
+  textColor: hexOr(s.textColor, '#ffffff'),
+  bgColor: hexOr(s.bgColor, '#000000'),
+  bgOpacity: Math.round(clampNum(s.bgOpacity, 80, 0, 100)),
+  borderRadius: Math.round(clampNum(s.borderRadius, 18, 0, 48)),
+  fontSize: Math.round(clampNum(s.fontSize, 16, 12, 32)),
+  textAlign: ['left', 'center', 'right'].includes(s.textAlign) ? s.textAlign : 'left',
+  width: Math.round(clampNum(s.width, 93, 45, 96)),
+  x: Math.round(clampNum(s.x, 50, 0, 100)),
+  y: Math.round(clampNum(s.y, 96, 0, 100))
+});
+const cleanMediaStyle = (s = {}) => ({
+  width: Math.round(clampNum(s.width, 100, 15, 130)),
+  x: Math.round(clampNum(s.x, 50, 0, 100)),
+  y: Math.round(clampNum(s.y, 50, 0, 100))
+});
 const cleanLayer = (l = {}) => ({
   start: Math.max(0, Number(l.start) || 0),
   duration: Math.max(0, Number(l.duration) || 0),
-  texts: typeof l.texts === 'object' && l.texts ? l.texts : {}
+  texts: typeof l.texts === 'object' && l.texts ? l.texts : {},
+  style: cleanBoxStyle(l.style)
 });
 const cleanEl = (x = {}) => ({
   type: ['video', 'image', 'text'].includes(x.type) ? x.type : 'text',
@@ -79,7 +101,9 @@ const cleanEl = (x = {}) => ({
   audioSrc: String(x.audioSrc || ''),
   duration: Math.max(0, Number(x.duration) || 0),
   layers: (Array.isArray(x.layers) ? x.layers : []).slice(0, 20).map(cleanLayer),
-  texts: typeof x.texts === 'object' && x.texts ? x.texts : {}
+  texts: typeof x.texts === 'object' && x.texts ? x.texts : {},
+  style: cleanBoxStyle(x.style),
+  mediaStyle: cleanMediaStyle(x.mediaStyle)
 });
 const clean = (b = {}) => ({
   name: String(b.name || 'Sin nombre').slice(0, 100),
@@ -203,6 +227,10 @@ const page = (n) => (req, res) => res.sendFile(path.join(__dirname, 'public', n 
 // La dirección principal es el hub; los enlaces de experiencia (con ?e=ID) siguen abriendo el visor
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', req.query.e ? 'index.html' : 'hub.html')));
 app.get('/hub', page('hub'));
+app.get('/introduccion', page('introduccion'));
+app.get('/como-se-usa', page('como-se-usa'));
+app.get('/experiencias', page('experiencias'));
+app.get('/faq', page('faq'));
 app.get('/privacidad', page('privacidad'));
 app.get('/punto', page('punto'));
 
