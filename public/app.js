@@ -42,9 +42,27 @@
     $('#langSel').onchange = (e) => { lang = e.target.value; applyI18n(); track('idioma', { d: lang }); };
     applyI18n();
     try {
-      const list = await (await fetch('/api/experiences')).json();
+      const [list, siteRes] = await Promise.all([
+        fetch('/api/experiences').then((r) => r.json()),
+        fetch('/api/site').then((r) => r.json()).catch(() => null)
+      ]);
       const id = new URLSearchParams(location.search).get('e');
       exp = list.find((e) => e.id === id) || list[0];
+      const st = siteRes && siteRes.settings;
+      if (st) {
+        if (st.arCtaBg || st.ctaBg || st.accent) document.documentElement.style.setProperty('--cta-bg', st.arCtaBg || st.ctaBg || st.accent);
+        if (st.arCtaColor || st.ctaColor) document.documentElement.style.setProperty('--cta-fg', st.arCtaColor || st.ctaColor);
+        if (st.arSecBg) document.documentElement.style.setProperty('--sec-bg', st.arSecBg);
+        if (st.arSecColor) document.documentElement.style.setProperty('--sec-fg', st.arSecColor);
+        const ff = st.fontFamily || 'Noto Sans';
+        if (ff !== 'Noto Sans') {
+          const lk = document.createElement('link');
+          lk.rel = 'stylesheet';
+          lk.href = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(ff) + ':ital,wght@0,400;0,600;0,700;1,400&display=swap';
+          document.head.appendChild(lk);
+        }
+        document.documentElement.style.setProperty('--fuente', `"${ff}", "Noto Sans JP", "Noto Sans SC", "Noto Sans KR", system-ui, -apple-system, sans-serif`);
+      }
     } catch (e) {}
     track('abre', { d: lang });
     $('#privLink').onclick = () => track('privacidad');
@@ -79,11 +97,11 @@
   const NEXT = { es: 'Siguiente', en: 'Next', ja: '次へ', zh: '下一步', ko: '다음' };
   Object.keys(NEXT).forEach((k) => (UI[k].next = NEXT[k]));
   const EXTRA = {
-    es: { toHub: 'Descubre otros puntos', privacy: 'Datos y privacidad', closeTab: 'Ya puedes cerrar esta pestaña.' },
-    en: { toHub: 'Discover other points', privacy: 'Data and privacy', closeTab: 'You can now close this tab.' },
-    ja: { toHub: '他のスポットを見る', privacy: 'データとプライバシー', closeTab: 'このタブを閉じて構いません。' },
-    zh: { toHub: '查看其他地点', privacy: '数据与隐私', closeTab: '现在可以关闭此标签页。' },
-    ko: { toHub: '다른 장소 보기', privacy: '데이터 및 개인정보', closeTab: '이제 이 탭을 닫아도 됩니다.' }
+    es: { toHub: 'Descubre otros puntos', privacy: 'Datos y privacidad', closeTab: 'Ya puedes cerrar esta pestaña.', scanning: 'Escaneando… mantén firme', playFallback: '▶ Reproducir experiencia' },
+    en: { toHub: 'Discover other points', privacy: 'Data and privacy', closeTab: 'You can now close this tab.', scanning: 'Scanning… hold steady', playFallback: '▶ Play experience' },
+    ja: { toHub: '他のスポットを見る', privacy: 'データとプライバシー', closeTab: 'このタブを閉じて構いません。', scanning: 'スキャン中…そのままお待ちください', playFallback: '▶ 体験を再生' },
+    zh: { toHub: '查看其他地点', privacy: '数据与隐私', closeTab: '现在可以关闭此标签页。', scanning: '正在扫描…请保持稳定', playFallback: '▶ 播放体验' },
+    ko: { toHub: '다른 장소 보기', privacy: '데이터 및 개인정보', closeTab: '이제 이 탭을 닫아도 됩니다.', scanning: '스캔 중… 잠시 유지해 주세요', playFallback: '▶ 체험 재생' }
   };
   Object.keys(EXTRA).forEach((k) => Object.assign(UI[k], EXTRA[k]));
   // Marca local de «visitado» para el hub (solo en este teléfono)
@@ -93,7 +111,22 @@
       if (exp && !a.includes(exp.id)) { a.push(exp.id); localStorage.setItem('ar-visitados', JSON.stringify(a)); }
     } catch (e) {}
   }
-  let curEl = null, txSrc = null, idx = -1, started = false, silT = 0, readyT = 0, missT = 0;
+  let curEl = null, txSrc = null, idx = -1, started = false, silT = 0, readyT = 0, missT = 0, lockT = 0;
+  const LOCK_MS = 1200;
+  function cancelLock() {
+    clearTimeout(lockT); lockT = 0;
+  }
+  function triggerStart(manual) {
+    if (started) return;
+    cancelLock();
+    clearTimeout(missT);
+    $('#btnManualPlay').classList.add('hidden');
+    $('#silhouette').classList.add('hidden');
+    started = true;
+    if (manual) track('reproducir_manual', { n: Math.round(performance.now() - (readyT || silT)) });
+    else track('objetivo', { n: Math.round(performance.now() - (readyT || silT)) });
+    next();
+  }
   let sceneT = 0, lastTs = 0, paused = false, vEnded = false, mediaReady = false, shown = -2;
   const vid = document.createElement('video');
   vid.playsInline = true; vid.setAttribute('webkit-playsinline', '');
@@ -131,12 +164,11 @@
     show('screenAR');
     cancelAnimationFrame(raf);
     idx = -1; started = false; curEl = null; unlockAudio();
-    silT = performance.now(); readyT = 0; clearTimeout(missT);
-    missT = setTimeout(() => { if (!started) track('sin_reconocer'); }, 15000);
+    silT = performance.now(); readyT = 0; clearTimeout(missT); cancelLock();
     track('silueta');
     $('#silImg').src = exp.silhouetteSrc || '';
     $('#silImg').style.display = exp.silhouetteSrc ? '' : 'none';
-    hide(['#textPanel', '#modal', '#stage', '#btnNextF', '#btnSound']);
+    hide(['#textPanel', '#modal', '#stage', '#btnNextF', '#btnSound', '#btnManualPlay']);
     $('#stage').innerHTML = '';
     $('#silhouette').classList.remove('hidden');
     $('#loading').classList.remove('hidden');
@@ -144,21 +176,36 @@
 
     const holder = $('#sceneHolder');
     holder.innerHTML = `
-      <a-scene mindar-image="imageTargetSrc: ${exp.targetSrc}; uiLoading: no; uiScanning: no; uiError: no; missTolerance: 5; warmupTolerance: 3"
+      <a-scene mindar-image="imageTargetSrc: ${exp.targetSrc}; uiLoading: no; uiScanning: no; uiError: no; missTolerance: 5; warmupTolerance: 20"
                color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights"
-               vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false" embedded>
+               vr-mode-ui="enabled: false" xr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false" embedded>
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
         <a-entity id="target" mindar-image-target="targetIndex: 0"></a-entity>
       </a-scene>`;
     const scene = holder.querySelector('a-scene');
     const target = holder.querySelector('#target');
-    scene.addEventListener('arReady', () => { readyT = performance.now(); $('#loading').classList.add('hidden'); });
+    scene.addEventListener('arReady', () => {
+      readyT = performance.now();
+      $('#loading').classList.add('hidden');
+      clearTimeout(missT);
+      missT = setTimeout(() => {
+        if (!started) {
+          track('sin_reconocer');
+          $('#btnManualPlay').classList.remove('hidden');
+        }
+      }, 15000);
+    });
     scene.addEventListener('arError', () => { track('error', { d: 'ar' }); $('#loading').textContent = t('notReady'); });
     target.addEventListener('targetFound', () => {
-      $('#silhouette').classList.add('hidden');
-      if (!started) { started = true; clearTimeout(missT); track('objetivo', { n: Math.round(performance.now() - (readyT || silT)) }); next(); }
+      if (!readyT || started || lockT) return;
+      // Reloj interno silencioso (1.2 s continuos) para confirmar escaneo real sin mostrar barra
+      lockT = setTimeout(() => { lockT = 0; triggerStart(false); }, LOCK_MS);
     });
-    target.addEventListener('targetLost', () => { if (started) track('objetivo_perdido'); if (!sticky && started) resetExp(); });
+    target.addEventListener('targetLost', () => {
+      if (lockT) { cancelLock(); return; }
+      if (started) track('objetivo_perdido');
+      if (!sticky && started) resetExp();
+    });
   }
 
   function next() {
@@ -186,6 +233,14 @@
     } else {
       stage.innerHTML = `<img src="${curEl.src}" alt="">`;
       const im = stage.querySelector('img');
+      const ms = curEl.mediaStyle || {};
+      const mw = ms.width !== undefined ? ms.width : 100;
+      const mx = ms.x !== undefined ? ms.x : 50;
+      const my = ms.y !== undefined ? ms.y : 50;
+      im.style.width = mw + '%';
+      im.style.left = mx + '%';
+      im.style.top = my + '%';
+      im.style.transform = 'translate(-50%, -50%)';
       if (im.complete) mediaReady = true; else im.onload = im.onerror = () => { mediaReady = true; };
       $('#btnNextF').textContent = last ? t('close') : t('next');
       $('#btnNextF').classList.remove('hidden');
@@ -229,9 +284,40 @@
     renderPanel(false, false);
   }
 
+  function hexToRgba(hex, op) {
+    const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex || '#000000');
+    const r = m ? parseInt(m[1], 16) : 0, g = m ? parseInt(m[2], 16) : 0, b = m ? parseInt(m[3], 16) : 0;
+    const a = Math.min(100, Math.max(0, Number.isFinite(Number(op)) ? Number(op) : 80)) / 100;
+    return `rgba(${r},${g},${b},${a.toFixed(2)})`;
+  }
+  function applyPanelStyle(src) {
+    const st = (src && src.style) || {};
+    const panel = $('#textPanel'), title = $('#textTitle'), body = $('#textBody');
+    const textColor = st.textColor || '#ffffff';
+    const bgColor = st.bgColor || '#000000';
+    const bgOpacity = st.bgOpacity !== undefined ? st.bgOpacity : 80;
+    const radius = st.borderRadius !== undefined ? st.borderRadius : 18;
+    const fontSize = st.fontSize !== undefined ? st.fontSize : 16;
+    const align = st.textAlign || 'left';
+    const width = st.width !== undefined ? st.width : 93;
+    const x = st.x !== undefined ? st.x : 50;
+    const y = st.y !== undefined ? st.y : 96;
+    panel.style.color = textColor;
+    panel.style.background = hexToRgba(bgColor, bgOpacity);
+    panel.style.borderRadius = radius + 'px';
+    panel.style.textAlign = align;
+    panel.style.width = width + '%';
+    panel.style.left = x + '%';
+    panel.style.top = y + '%';
+    panel.style.transform = `translate(-${x}%, -${y}%)`;
+    title.style.color = textColor;
+    title.style.fontSize = Math.round(fontSize * 1.15) + 'px';
+    body.style.fontSize = fontSize + 'px';
+  }
   function renderPanel(standalone, last) {
     const x = getText();
     if (!x.title && !x.body) { $('#textPanel').classList.add('hidden'); return false; }
+    applyPanelStyle(txSrc);
     $('#textTitle').textContent = x.title;
     $('#textBody').textContent = x.body;
     $('#btnNextP').textContent = t('next');
@@ -260,15 +346,21 @@
   }
 
   function resetExp() {
-    cancelAnimationFrame(raf); stopAudio(); vid.pause(); vid.onended = null;
+    cancelAnimationFrame(raf); cancelLock(); clearTimeout(missT); stopAudio(); vid.pause(); vid.onended = null;
     started = false; idx = -1; curEl = null; txSrc = null; paused = false;
-    hide(['#textPanel', '#stage', '#btnNextF', '#modal']);
+    hide(['#textPanel', '#stage', '#btnNextF', '#modal', '#btnManualPlay']);
     $('#stage').innerHTML = '';
     $('#silhouette').classList.remove('hidden');
+    missT = setTimeout(() => {
+      if (!started) {
+        track('sin_reconocer');
+        $('#btnManualPlay').classList.remove('hidden');
+      }
+    }, 15000);
   }
 
   function closeAR() {
-    cancelAnimationFrame(raf); stopAudio(); vid.pause(); vid.onended = null;
+    cancelAnimationFrame(raf); cancelLock(); clearTimeout(missT); stopAudio(); vid.pause(); vid.onended = null;
     curEl = null; paused = false;
     const scene = document.querySelector('a-scene');
     try { scene.systems['mindar-image-system'].stop(); } catch (e) {}
@@ -277,6 +369,7 @@
     show('screenEnd');
   }
 
+  $('#btnManualPlay').onclick = () => triggerStart(true);
   $('#btnSound').onclick = () => { if (aud.paused) aud.play().catch(() => {}); else aud.pause(); soundLabel(); };
   $('#btnNextP').onclick = next;
   $('#btnNextF').onclick = next;

@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>AR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <meta name="robots" content="noindex, nofollow">
 </head>
@@ -34,7 +37,8 @@
 <section id="screenAR" class="screen">
   <div id="sceneHolder"></div>
   <button id="btnX" class="x" aria-label="close">✕</button>
-  <div id="silhouette"><img id="silImg" alt=""><p data-i="aim"></p></div>
+  <div id="silhouette"><img id="silImg" alt=""><p id="silText" data-i="aim"></p></div>
+  <button id="btnManualPlay" class="btn small hidden floatNext" data-i="playFallback"></button>
   <div id="stage" class="hidden"></div>
   <button id="btnNextF" class="btn small hidden floatNext"></button>
   <button id="btnSound" class="btn small ghost hidden"></button>
