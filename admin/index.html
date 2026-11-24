@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Editor de experiencias</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
   *{box-sizing:border-box}
   body{margin:0;font-family:system-ui,sans-serif;background:#f4f5f7;color:#1b1e26;display:flex;min-height:100vh}
@@ -31,26 +34,65 @@
   a{color:#ff4d6d}
   .qrbox{background:#fff;border:1px dashed #c9ced8;border-radius:10px;padding:14px;margin-top:12px;text-align:center}
   .qrbox svg{width:100%;max-width:280px;height:auto}
-  /* Vista previa en teléfono (pantalla real de 360x720 reducida al 60 %) */
-  #phoneCol{width:290px;padding:24px 12px;position:sticky;top:0;align-self:flex-start;flex-shrink:0}
+  /* Vista previa en teléfono (ajustable a promedios Android / iPhone) */
+  #phoneCol{width:300px;padding:24px 12px;position:sticky;top:0;align-self:flex-start;flex-shrink:0}
   #phoneCol h3{margin:0 0 8px;text-align:center}
-  #pvChips{text-align:center;margin-bottom:10px}
-  .phoneWrap{padding:10px;background:#111;border-radius:36px;width:236px;margin:0 auto}
-  .phone{width:216px;height:432px;overflow:hidden;border-radius:26px;position:relative;background:#333}
-  .pvscreen{width:360px;height:720px;transform:scale(.6);transform-origin:0 0;position:relative;color:#fff;
-    font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;background:linear-gradient(#4a4f5c,#2b2e37)}
-  .pvimg{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
-  .pvlabel{position:absolute;top:50%;left:0;right:0;text-align:center;opacity:.7}
-  .pvpanel{position:absolute;left:12px;right:12px;bottom:14px;background:#000c;border-radius:18px;padding:16px}
+  #pvChips,#pvDevice{text-align:center;margin-bottom:8px;display:flex;flex-wrap:wrap;gap:4px;justify-content:center}
+  #pvDevice button{padding:4px 8px;font-size:.75rem;border:1px solid #c9ced8;background:#fff;border-radius:6px;cursor:pointer}
+  #pvDevice button.on{background:#1b1e26;color:#fff;border-color:#1b1e26}
+  .phoneWrap{padding:10px;background:#111;border-radius:36px;width:254px;margin:0 auto;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+  .phone{width:234px;height:513px;overflow:hidden;border-radius:26px;position:relative;background:#333;transition:height .18s ease}
+  .pvscreen{width:375px;height:822px;transform:scale(.624);transform-origin:0 0;position:relative;color:#fff;
+    font-family:"Noto Sans","Noto Sans JP","Noto Sans SC","Noto Sans KR",system-ui,-apple-system,sans-serif;background:linear-gradient(#4a4f5c,#2b2e37)}
+  .pvimg{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none}
+  .pvimg-drag{position:absolute;left:50%;top:50%;width:100%;max-height:100%;transform:translate(-50%,-50%);cursor:grab;user-select:none;touch-action:none;z-index:2;transition:outline-color .15s}
+  .pvimg-drag img{display:block;width:100%;height:auto;max-height:100%;object-fit:contain;pointer-events:none}
+  .pvimg-drag:hover{outline:2px dashed rgba(255,255,255,.65);outline-offset:2px}
+  .pvimg-drag.dragging{cursor:grabbing;outline:2px solid #38bdf8;outline-offset:2px}
+  .pvimg-drag:hover .pvdraghint,.pvimg-drag.dragging .pvdraghint{opacity:1}
+  .pvlabel{position:absolute;top:50%;left:0;right:0;text-align:center;opacity:.7;pointer-events:none}
+  .pvpanel{position:absolute;left:50%;top:96%;width:93%;max-width:calc(100% - 16px);transform:translate(-50%,-96%);background:rgba(0,0,0,.8);border-radius:18px;padding:16px;z-index:6;
+    cursor:grab;user-select:none;touch-action:none;transition:outline-color .15s}
+  .pvpanel:hover{outline:2px dashed rgba(255,255,255,.6);outline-offset:2px}
+  .pvpanel.dragging{cursor:grabbing;outline:2px solid #ff4d6d;outline-offset:2px}
+  .pvdraghint{position:absolute;top:-22px;left:50%;transform:translateX(-50%);background:#ff4d6d;color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s}
+  .pvpanel:hover .pvdraghint,.pvpanel.dragging .pvdraghint{opacity:1}
   .pvpanel h2{margin:0 0 8px;font-size:1.1rem}
   .pvbody{max-height:187px;overflow:hidden;line-height:1.5;white-space:pre-line;font-size:16px}
   .pvrow{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
-  .pvb{padding:10px 16px;border-radius:14px;background:#ff4d6d;font-size:14.4px;font-weight:600}
-  .pvb.g{background:transparent;border:1.5px solid #fff6}
-  .pvfloat{position:absolute;left:50%;transform:translateX(-50%);bottom:24px}
-  .pvsound{position:absolute;top:12px;left:12px;background:#000a;border:1.5px solid #fff6}
-  .pvaim{position:absolute;left:0;right:0;top:62%;text-align:center}
+  .pvb{padding:10px 16px;border-radius:14px;background:var(--pv-cta-bg,#ff4d6d);font-size:14.4px;font-weight:600;color:var(--pv-cta-fg,#fff)}
+  .pvb.g{background:var(--pv-sec-bg,#2a2f3b);color:var(--pv-sec-fg,#fff);border:1.5px solid rgba(255,255,255,.35)}
+  .pvfloat{position:absolute;left:50%;transform:translateX(-50%);bottom:24px;pointer-events:none}
+  .pvsound{position:absolute;top:12px;left:12px;background:#000a;border:1.5px solid #fff6;pointer-events:none}
+  .pvaim{position:absolute;left:0;right:0;top:62%;text-align:center;pointer-events:none}
   .pvaim span{background:#000a;padding:8px 14px;border-radius:999px}
+  .stylebox{margin-top:10px;padding:10px 12px;border:1px solid #dfe3eb;border-radius:8px;background:#f7f8fa}
+  .stylebox summary{cursor:pointer;font-weight:700;font-size:.85rem;color:#1b1e26;list-style:none}
+  .stylebox summary::-webkit-details-marker{display:none}
+  .stylegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+  .stylegrid label{margin:0 0 3px;font-size:.78rem}
+  .stylegrid input[type=color]{width:42px;flex-shrink:0;height:34px;padding:2px;border:1px solid #c9ced8;border-radius:6px;background:#fff;cursor:pointer}
+  .color-hex{display:flex;align-items:center;gap:6px}
+  .color-hex input[type=color]{width:42px;min-width:42px;height:36px;padding:2px;border:1px solid #c9ced8;border-radius:6px;background:#fff;cursor:pointer;flex-shrink:0}
+  .color-hex .hex-in{flex:1;min-width:0;font-family:ui-monospace,Consolas,monospace;font-size:.84rem;padding:7px 8px;text-transform:uppercase}
+  .stylegrid input[type=range]{width:100%;accent-color:#ff4d6d}
+  .stylegrid input[type=number],.stylegrid select{padding:6px 8px;font-size:.82rem}
+  .posrow{display:flex;align-items:flex-end;gap:8px;margin-top:8px;flex-wrap:wrap}
+  .posrow > div{flex:1;min-width:80px}
+  .posrow button{padding:7px 10px;font-size:.78rem;border:1px solid #c9ced8;background:#fff;border-radius:6px;cursor:pointer;white-space:nowrap}
+  .tl-wrap{margin-top:14px;padding:12px 14px;border:1px solid #dfe3eb;border-radius:10px;background:#fafbfc}
+  .tl-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;font-size:.86rem}
+  .tl-row{margin-bottom:10px;padding:8px 10px;border-radius:8px;background:#fff;border:1px solid #e5e7eb}
+  .tl-row:last-child{margin-bottom:0}
+  .tl-top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.82rem;margin-bottom:6px;flex-wrap:wrap}
+  .tl-badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.74rem;font-weight:700;color:#fff}
+  .tl-badge.video{background:#7c3aed}.tl-badge.image{background:#0284c7}.tl-badge.text{background:#ff4d6d}
+  .tl-track{position:relative;height:20px;background:#eef0f4;border-radius:6px;overflow:hidden}
+  .tl-bar{position:absolute;top:0;bottom:0;border-radius:6px;font-size:.72rem;font-weight:600;color:#fff;display:flex;align-items:center;padding:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tl-bar.video{background:#8b5cf6}.tl-bar.image{background:#0ea5e9}.tl-bar.text{background:#fb7185}.tl-bar.layer{background:#10b981}
+  .tl-layers{margin-top:6px;display:flex;flex-direction:column;gap:4px}
+  .tl-lrow{display:grid;grid-template-columns:110px 1fr;gap:8px;align-items:center;font-size:.75rem;color:#4b5563}
+  .tl-ticks{display:flex;justify-content:space-between;font-size:.7rem;color:#9ca3af;margin-top:3px}
   .layers{margin-top:12px;padding-top:8px;border-top:1px dashed #c9ced8}
   .layer{border:1px solid #e1e4ea;border-left:4px solid #6c8cff;border-radius:8px;padding:10px;margin:10px 0;background:#fff}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -67,10 +109,12 @@
 <main id="main"></main>
 <div id="phoneCol">
   <h3>Vista previa</h3>
+  <div id="pvDevice"></div>
   <div id="pvChips"></div>
   <div id="pvTime" style="text-align:center;margin-bottom:8px"></div>
-  <div class="phoneWrap"><div class="phone"><div class="pvscreen" id="pvScreen"></div></div></div>
-  <small style="text-align:center">Así se ve en un teléfono, con el idioma de la pestaña elegida. Toca un elemento para verlo.</small>
+  <div class="phoneWrap"><div class="phone" id="pvPhone"><div class="pvscreen" id="pvScreen"></div></div></div>
+  <small id="pvDim" style="text-align:center"></small>
+  <small style="text-align:center">Arrastra la caja de texto con el mouse para moverla. Toca un elemento para verlo.</small>
 </div>
 
 <script src="/admin/extra.js"></script>
@@ -86,16 +130,84 @@ const PV = {
 };
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-let all = [], cur = null, tab = 'es', pv = 0, qrLast = null, view = 'exp';
+const PHONES = {
+  avg:     { label: 'Promedio', w: 375, h: 822 },
+  android: { label: 'Android',  w: 360, h: 800 },
+  iphone:  { label: 'iPhone',   w: 390, h: 844 }
+};
+const DEFAULT_STYLE = { textColor:'#ffffff', bgColor:'#000000', bgOpacity:80, borderRadius:18, fontSize:16, textAlign:'left', width:93, x:50, y:96 };
+const DEFAULT_MEDIA_STYLE = { width:100, x:50, y:50 };
+const normStyle = (s) => Object.assign({}, DEFAULT_STYLE, s || {});
+const normMediaStyle = (s) => Object.assign({}, DEFAULT_MEDIA_STYLE, s || {});
+function hexToRgba(hex, op) {
+  const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex || '#000000');
+  const r = m ? parseInt(m[1], 16) : 0, g = m ? parseInt(m[2], 16) : 0, b = m ? parseInt(m[3], 16) : 0;
+  const a = Math.min(100, Math.max(0, Number.isFinite(Number(op)) ? Number(op) : 80)) / 100;
+  return `rgba(${r},${g},${b},${a.toFixed(2)})`;
+}
+let all = [], cur = null, tab = 'es', pv = 0, pvDev = 'avg', qrLast = null, view = 'exp';
 
 async function api(url, opts) {
   const r = await fetch(url, opts);
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
+async function applyPreviewTheme() {
+  try {
+    const s = (typeof siteData !== 'undefined' && siteData) || (await api('/api/site')).settings;
+    if (!s) return;
+    document.documentElement.style.setProperty('--pv-cta-bg', s.arCtaBg || s.ctaBg || s.accent || '#ff4d6d');
+    document.documentElement.style.setProperty('--pv-cta-fg', s.arCtaColor || s.ctaColor || '#ffffff');
+    document.documentElement.style.setProperty('--pv-sec-bg', s.arSecBg || '#2a2f3b');
+    document.documentElement.style.setProperty('--pv-sec-fg', s.arSecColor || '#ffffff');
+    const ff = s.fontFamily || 'Noto Sans';
+    if (ff !== 'Noto Sans') {
+      const id = 'gf-pv-' + ff.replace(/\s+/g, '-');
+      if (!document.getElementById(id)) {
+        const lk = document.createElement('link');
+        lk.id = id; lk.rel = 'stylesheet';
+        lk.href = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(ff) + ':ital,wght@0,400;0,600;0,700;1,400&display=swap';
+        document.head.appendChild(lk);
+      }
+    }
+    const sc = $('#pvScreen');
+    if (sc) sc.style.fontFamily = `"${ff}", "Noto Sans JP", "Noto Sans SC", "Noto Sans KR", system-ui, sans-serif`;
+  } catch (e) {}
+}
+function enhanceColorPickers(root) {
+  (root || document).querySelectorAll('input[type="color"]').forEach(cp => {
+    if (cp.dataset.hexBound) return;
+    cp.dataset.hexBound = '1';
+    const wrap = document.createElement('div');
+    wrap.className = 'color-hex';
+    const hex = document.createElement('input');
+    hex.type = 'text';
+    hex.className = 'hex-in';
+    hex.maxLength = 7;
+    hex.placeholder = '#000000';
+    hex.value = (cp.value || '#000000').toUpperCase();
+    hex.setAttribute('aria-label', 'Código hexadecimal');
+    cp.parentNode.insertBefore(wrap, cp);
+    wrap.appendChild(cp);
+    wrap.appendChild(hex);
+    cp.addEventListener('input', () => { hex.value = cp.value.toUpperCase(); });
+    cp.addEventListener('change', () => { hex.value = cp.value.toUpperCase(); });
+    hex.addEventListener('input', () => {
+      let v = hex.value.trim();
+      if (v && !v.startsWith('#')) v = '#' + v;
+      if (/^#[0-9a-f]{6}$/i.test(v)) {
+        cp.value = v.toLowerCase();
+        cp.dispatchEvent(new Event('input', { bubbles: true }));
+        cp.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    });
+    hex.addEventListener('blur', () => { hex.value = cp.value.toUpperCase(); });
+  });
+}
 async function refresh(selectId) {
   all = await api('/api/experiences');
   cur = all.find(e => e.id === selectId) || (cur && all.find(e => e.id === cur.id)) || all[0] || null;
+  applyPreviewTheme();
   render();
 }
 const blank = () => ({ name:'Nueva experiencia', targetSrc:'', silhouetteSrc:'', elements:[], page: emptyPage() });
@@ -104,16 +216,56 @@ const status = (m) => { if ($('#status')) $('#status').textContent = m; };
 function fileField(k, label, accept) {
   return `<label>${label}</label><input type="file" data-k="${k}" accept="${accept}"><small>${esc(cur[k]) || 'Sin archivo'}</small>`;
 }
+function styleHtml(style, key) {
+  const s = normStyle(style);
+  return `<details class="stylebox" open>
+    <summary>🎨 Estilo y posición de la caja de texto</summary>
+    <div class="stylegrid">
+      <div><label>Color tipografía</label><input type="color" data-sk="${key}" data-sp="textColor" value="${esc(s.textColor)}"></div>
+      <div><label>Color de caja</label><input type="color" data-sk="${key}" data-sp="bgColor" value="${esc(s.bgColor)}"></div>
+      <div><label>Opacidad caja: <b data-sv="${key}.bgOpacity">${s.bgOpacity}%</b></label><input type="range" min="0" max="100" step="5" data-sk="${key}" data-sp="bgOpacity" value="${s.bgOpacity}"></div>
+      <div><label>Esquinas: <b data-sv="${key}.borderRadius">${s.borderRadius}px</b></label><input type="range" min="0" max="48" step="1" data-sk="${key}" data-sp="borderRadius" value="${s.borderRadius}"></div>
+      <div><label>Tamaño texto: <b data-sv="${key}.fontSize">${s.fontSize}px</b></label><input type="range" min="12" max="32" step="1" data-sk="${key}" data-sp="fontSize" value="${s.fontSize}"></div>
+      <div><label>Ancho caja: <b data-sv="${key}.width">${s.width}%</b></label><input type="range" min="45" max="96" step="1" data-sk="${key}" data-sp="width" value="${s.width}"></div>
+    </div>
+    <div class="posrow">
+      <div><label>Alineación</label><select data-sk="${key}" data-sp="textAlign">
+        <option value="left" ${s.textAlign==='left'?'selected':''}>Izquierda</option>
+        <option value="center" ${s.textAlign==='center'?'selected':''}>Centro</option>
+        <option value="right" ${s.textAlign==='right'?'selected':''}>Derecha</option>
+      </select></div>
+      <div><label>Posición X (%)</label><input type="number" min="0" max="100" data-sk="${key}" data-sp="x" value="${s.x}"></div>
+      <div><label>Posición Y (%)</label><input type="number" min="0" max="100" data-sk="${key}" data-sp="y" value="${s.y}"></div>
+      <button type="button" data-sreset="${key}">↺ Centrar abajo</button>
+    </div>
+    <small>Tip: también puedes arrastrar la caja con el mouse directamente en la vista previa del teléfono.</small>
+  </details>`;
+}
+function mediaStyleHtml(ms, i) {
+  const s = normMediaStyle(ms);
+  return `<details class="stylebox" open>
+    <summary>🖼️ Tamaño y posición de la imagen</summary>
+    <div class="posrow">
+      <div style="flex:2;min-width:130px"><label>Tamaño / Ancho: <b data-mv="${i}.width">${s.width}%</b></label><input type="range" min="15" max="130" step="1" data-mk="${i}" data-mp="width" value="${s.width}" style="width:100%;accent-color:#ff4d6d"></div>
+      <div><label>Posición X (%)</label><input type="number" min="0" max="100" data-mk="${i}" data-mp="x" value="${s.x}"></div>
+      <div><label>Posición Y (%)</label><input type="number" min="0" max="100" data-mk="${i}" data-mp="y" value="${s.y}"></div>
+      <button type="button" data-mreset="${i}">↺ Centrar</button>
+    </div>
+    <small>Tip: arrastra la imagen libremente con el mouse en cualquier dirección dentro del teléfono.</small>
+  </details>`;
+}
 function elHtml(el, i) {
   const tx = (el.texts && el.texts[tab]) || { title:'', body:'' };
   const fi = (f, acc) => `<input type="file" data-el="${i}" data-f="${f}" accept="${acc}"><small>${esc(el[f]) || 'Sin archivo'}</small>`;
   const body = el.type === 'text'
     ? `<label>Título (${LANGS[tab]})</label><input type="text" data-ti="${i}" value="${esc(tx.title)}">
-       <label>Texto (${LANGS[tab]})</label><textarea data-tb="${i}">${esc(tx.body)}</textarea>`
+       <label>Texto (${LANGS[tab]})</label><textarea data-tb="${i}">${esc(tx.body)}</textarea>
+       ${styleHtml(el.style, String(i))}`
     : el.type === 'video'
       ? `<label>Video principal (.mov con transparencia para iPhone, o .mp4)</label>${fi('src','.mov,video/quicktime,video/mp4,video/webm')}
          <label>Video alternativo (.webm con transparencia para Android y Chrome) - opcional</label>${fi('srcAlt','.webm,video/webm')}`
       : `<label>Imagen o animación (.webp animado, .png, .jpg, .gif)</label>${fi('src','image/*')}
+         ${mediaStyleHtml(el.mediaStyle, i)}
          <label>Audio (opcional, .mp3 o .m4a). El visitante podrá silenciarlo.</label>${fi('audioSrc','audio/*,.mp3,.m4a,.ogg')}`;
   const layers = el.type === 'text' ? '' : layersHtml(el, i);
   return `<div class="el"><div class="elh"><b>Elemento ${i+1}</b>
@@ -169,6 +321,7 @@ function render() {
       <div class="tabs">Idioma de los textos: ${Object.entries(LANGS).map(([k,v]) => `<button data-t="${k}" class="${k===tab?'on':''}">${v}</button>`).join('')}</div>
       ${cur.elements.map(elHtml).join('') || '<p>Aún no hay elementos.</p>'}
       <div class="add"><button data-add="video">＋ Video</button><button data-add="image">＋ Imagen / animación</button><button data-add="text">＋ Texto</button></div>
+      <div id="timelineBox">${timelineHtml()}</div>
     </fieldset>
     ${pageHtml()}
     <button class="primary" id="btnSave">Guardar</button>
@@ -189,6 +342,7 @@ function render() {
       sync();
       const k = key(), w = document.querySelector(`[data-warn="${k}"]`);
       if (w) { const [i, j] = k.split('.').map(Number); w.innerHTML = warnHtml(cur.elements[i].layers[j]); }
+      updateTimeline();
       renderPreview();
     };
     inp.onfocus = () => { pv = parseInt(key()); renderPreview(); };
@@ -198,6 +352,69 @@ function render() {
   document.querySelectorAll('[data-ti],[data-tb]').forEach(inp => {
     inp.oninput = () => { sync(); renderPreview(); };
     inp.onfocus = () => { pv = +(inp.dataset.ti ?? inp.dataset.tb); renderPreview(); };
+  });
+  document.querySelectorAll('[data-sk]').forEach(inp => {
+    const k = inp.dataset.sk, p = inp.dataset.sp;
+    const handle = () => {
+      sync();
+      const b = document.querySelector(`[data-sv="${k}.${p}"]`);
+      if (b) b.textContent = inp.value + (p === 'bgOpacity' || p === 'width' ? '%' : 'px');
+      if (k.includes('.')) {
+        const [ei, lj] = k.split('.').map(Number);
+        pv = ei;
+        const lay = cur.elements[ei] && cur.elements[ei].layers && cur.elements[ei].layers[lj];
+        if (lay) pvT = lay.start || 0;
+      } else {
+        pv = +k;
+      }
+      renderPreview();
+    };
+    inp.oninput = handle;
+    inp.onchange = handle;
+  });
+  document.querySelectorAll('[data-sreset]').forEach(btn => {
+    btn.onclick = (ev) => {
+      ev.stopPropagation();
+      const k = btn.dataset.sreset;
+      const target = getStyleOwner(k);
+      if (!target) return;
+      target.style = Object.assign(normStyle(target.style), { x: 50, y: 96 });
+      const ix = document.querySelector(`[data-sk="${k}"][data-sp="x"]`);
+      const iy = document.querySelector(`[data-sk="${k}"][data-sp="y"]`);
+      if (ix) ix.value = 50;
+      if (iy) iy.value = 96;
+      drawScreen();
+    };
+  });
+  document.querySelectorAll('[data-mk]').forEach(inp => {
+    const i = +inp.dataset.mk, p = inp.dataset.mp;
+    const handle = () => {
+      sync();
+      const b = document.querySelector(`[data-mv="${i}.${p}"]`);
+      if (b) b.textContent = inp.value + '%';
+      pv = i;
+      renderPreview();
+    };
+    inp.oninput = handle;
+    inp.onchange = handle;
+  });
+  document.querySelectorAll('[data-mreset]').forEach(btn => {
+    btn.onclick = (ev) => {
+      ev.stopPropagation();
+      const i = +btn.dataset.mreset;
+      if (!cur.elements[i]) return;
+      cur.elements[i].mediaStyle = { width: 100, x: 50, y: 50 };
+      const iw = document.querySelector(`[data-mk="${i}"][data-mp="width"]`);
+      const ix = document.querySelector(`[data-mk="${i}"][data-mp="x"]`);
+      const iy = document.querySelector(`[data-mk="${i}"][data-mp="y"]`);
+      const bv = document.querySelector(`[data-mv="${i}.width"]`);
+      if (iw) iw.value = 100;
+      if (bv) bv.textContent = '100%';
+      if (ix) ix.value = 50;
+      if (iy) iy.value = 50;
+      pv = i;
+      drawScreen();
+    };
   });
   document.querySelectorAll('input[type=file]').forEach(inp => inp.onchange = async () => {
     if (!inp.files[0]) return;
@@ -218,13 +435,90 @@ function render() {
   };
   if ($('#btnQR')) { $('#btnQR').onclick = genQR; qrToggle(); }
   if (qrLast && qrLast.id === cur.id && $('#qrOut')) $('#qrOut').innerHTML = qrLast.html;
+  enhanceColorPickers($('#main'));
   renderPreview();
 }
 
+function timelineHtml() {
+  if (!cur || !cur.elements || !cur.elements.length) return '';
+  let acc = 0, hasManual = false;
+  const rows = cur.elements.map((el, i) => {
+    const ls = el.layers || [];
+    const maxLayerEnd = ls.reduce((m, l) => Math.max(m, (l.start || 0) + (l.duration > 0 ? l.duration : 2)), 0);
+    let durLabel = '', sec = 0;
+    if (el.type === 'text') {
+      hasManual = true;
+      durLabel = 'Manual (hasta tocar Siguiente / Cerrar)';
+    } else if (el.type === 'video') {
+      hasManual = true;
+      durLabel = maxLayerEnd > 0 ? `Duración del video (capas hasta ${maxLayerEnd}s)` : 'Duración del video';
+      sec = Math.max(10, Math.ceil(maxLayerEnd));
+    } else {
+      const d = Number(el.duration) || 0;
+      if (d > 0) {
+        const eff = Math.max(d, maxLayerEnd);
+        durLabel = `${acc}s → ${acc + eff}s (${eff}s)`;
+        sec = eff;
+        acc += eff;
+      } else {
+        hasManual = true;
+        durLabel = 'Manual (hasta tocar Siguiente / Cerrar)';
+        sec = Math.max(10, Math.ceil(maxLayerEnd));
+      }
+    }
+    const tx = (el.texts && el.texts[tab]) || {};
+    const nameHint = el.type === 'text' ? (tx.title || tx.body || 'Texto vacío').slice(0, 42)
+      : (el.src ? el.src.split('/').pop() : 'Sin archivo');
+    const typeName = el.type === 'video' ? '🎬 Video' : el.type === 'image' ? '🖼️ Imagen' : '💬 Texto';
+    let layersBlock = '';
+    if (ls.length && el.type !== 'text') {
+      const scale = Math.max(sec || 10, maxLayerEnd || 10);
+      const lRows = ls.map((l, j) => {
+        const s = Number(l.start) || 0, d = Number(l.duration) || 0;
+        const leftPct = Math.min(95, (s / scale) * 100);
+        const wPct = d > 0 ? Math.max(4, Math.min(100 - leftPct, (d / scale) * 100)) : Math.max(8, 100 - leftPct);
+        const lt = (l.texts && l.texts[tab]) || {};
+        const lbl = lt.title || lt.body || `Capa ${j + 1}`;
+        const rng = d > 0 ? `${s}s – ${s + d}s` : `${s}s → fin`;
+        return `<div class="tl-lrow"><span>Capa ${j + 1} (${rng})</span>
+          <div class="tl-track"><div class="tl-bar layer" style="left:${leftPct.toFixed(1)}%;width:${wPct.toFixed(1)}%">${esc(lbl)}</div></div></div>`;
+      }).join('');
+      layersBlock = `<div class="tl-layers">${lRows}</div>
+        <div class="tl-ticks"><span>0s</span><span>${(scale / 2).toFixed(1).replace(/\.0$/, '')}s</span><span>${scale}s</span></div>`;
+    }
+    return `<div class="tl-row">
+      <div class="tl-top">
+        <span><span class="tl-badge ${el.type}">Paso ${i + 1} · ${typeName}</span> <small style="display:inline;margin-left:6px">${esc(nameHint)}</small></span>
+        <b>${esc(durLabel)}</b>
+      </div>
+      <div class="tl-track"><div class="tl-bar ${el.type}" style="left:0;width:100%">${esc(durLabel)}</div></div>
+      ${layersBlock}
+    </div>`;
+  }).join('');
+  const totalTxt = acc > 0
+    ? `Tiempo cronometrado: ${acc}s${hasManual ? ' + pasos manuales/video' : ''}`
+    : 'Duración según video / avance manual';
+  return `<div class="tl-wrap">
+    <div class="tl-head"><b>🕒 Línea de tiempo de la experiencia (${cur.elements.length} pasos)</b><small style="margin:0">${totalTxt}</small></div>
+    ${rows}
+  </div>`;
+}
+function updateTimeline() {
+  const box = $('#timelineBox');
+  if (box) box.innerHTML = timelineHtml();
+}
 // ---- Vista previa en teléfono
-function media(el) {
+function media(el, dragIdx) {
   if (!el) return '';
-  if (el.type === 'image') return el.src ? `<img class="pvimg" src="${esc(el.src)}" alt="">` : '<div class="pvlabel">Imagen</div>';
+  if (el.type === 'image') {
+    if (!el.src) return '<div class="pvlabel">Imagen</div>';
+    const ms = normMediaStyle(el.mediaStyle);
+    const st = `left:${ms.x}%;top:${ms.y}%;width:${ms.width}%;transform:translate(-50%,-50%)`;
+    if (dragIdx !== undefined && dragIdx !== null) {
+      return `<div class="pvimg-drag" data-mdrag="${dragIdx}" style="${st}"><span class="pvdraghint" style="background:#0284c7">⠿ Arrastra imagen</span><img src="${esc(el.src)}" alt=""></div>`;
+    }
+    return `<div class="pvimg-drag" style="${st};pointer-events:none"><img src="${esc(el.src)}" alt=""></div>`;
+  }
   if (el.type === 'video') {
     const vs = [el.srcAlt, el.src].find(u => u && !/\.mov$/i.test(u));
     return (vs ? `<video class="pvimg" src="${esc(vs)}" muted playsinline preload="metadata"></video>` : '') + '<div class="pvlabel">▶ Video</div>';
@@ -250,7 +544,8 @@ function layerHtml(l, i, j) {
     </div>
     <label>Título (${LANGS[tab]})</label><input type="text" data-lt="${k}" value="${esc(tx.title)}">
     <label>Texto (${LANGS[tab]})</label><textarea data-lb="${k}">${esc(tx.body)}</textarea>
-    <div data-warn="${k}">${warnHtml(l)}</div></div>`;
+    <div data-warn="${k}">${warnHtml(l)}</div>
+    ${styleHtml(l.style, k)}</div>`;
 }
 function layersHtml(el, i) {
   return `<div class="layers"><b>Capas de texto</b> <small>aparecen sobre la escena, en el segundo que indiques</small>
@@ -258,13 +553,35 @@ function layersHtml(el, i) {
     ${(el.layers || []).map((l, j) => layerHtml(l, i, j)).join('')}
     <div class="add"><button data-addlayer="${i}">＋ Capa de texto</button></div></div>`;
 }
-function activeAt(el, t) {
+function activeLayerIdx(el, t) {
   const ls = el.layers || []; let k = -1;
   ls.forEach((l, x) => { const s = l.start || 0, e = l.duration > 0 ? s + l.duration : Infinity; if (t >= s && t < e && (k < 0 || s >= (ls[k].start || 0))) k = x; });
-  return k < 0 ? null : ls[k];
+  return k;
+}
+function getStyleOwner(key) {
+  if (!cur || !key) return null;
+  if (key.includes('.')) {
+    const [ei, lj] = key.split('.').map(Number);
+    return cur.elements[ei] && cur.elements[ei].layers && cur.elements[ei].layers[lj];
+  }
+  return cur.elements[+key];
+}
+function applyPhoneSize() {
+  const d = PHONES[pvDev] || PHONES.avg;
+  const phone = $('#pvPhone'), sc = $('#pvScreen'), dim = $('#pvDim');
+  const displayW = 234, scale = displayW / d.w, displayH = Math.round(d.h * scale);
+  if (phone) { phone.style.width = displayW + 'px'; phone.style.height = displayH + 'px'; }
+  if (sc) { sc.style.width = d.w + 'px'; sc.style.height = d.h + 'px'; sc.style.transform = `scale(${scale.toFixed(4)})`; }
+  if (dim) dim.textContent = `${d.label}: ${d.w} × ${d.h} px`;
 }
 function renderPreview() {
   if (!$('#pvScreen') || !cur) return;
+  const devEl = $('#pvDevice');
+  if (devEl) {
+    devEl.innerHTML = Object.entries(PHONES).map(([k, v]) => `<button type="button" data-dev="${k}" class="${k===pvDev?'on':''}">${v.label}</button>`).join('');
+    devEl.querySelectorAll('button').forEach(b => b.onclick = () => { pvDev = b.dataset.dev; applyPhoneSize(); renderPreview(); });
+  }
+  applyPhoneSize();
   const els = cur.elements;
   if (pv >= els.length) pv = els.length - 1;
   $('#pvChips').innerHTML = [['-1','Silueta'], ...els.map((e,i) => [String(i), String(i+1)])]
@@ -280,8 +597,96 @@ function renderPreview() {
   } else $('#pvTime').innerHTML = '';
   drawScreen();
 }
-function panelHtml(tx, L, buttons) {
-  return `<div class="pvpanel"><h2>${esc(tx.title)}</h2><div class="pvbody">${esc(tx.body) || '(vacío: no se muestra)'}</div><div class="pvrow">${buttons}</div></div>`;
+function panelHtml(tx, style, L, buttons, dragKey) {
+  const s = normStyle(style);
+  const bg = hexToRgba(s.bgColor, s.bgOpacity);
+  const inline = `left:${s.x}%;top:${s.y}%;width:${s.width}%;transform:translate(-${s.x}%,-${s.y}%);color:${esc(s.textColor)};background:${bg};border-radius:${s.borderRadius}px;text-align:${esc(s.textAlign)}`;
+  const tStyle = `color:${esc(s.textColor)};font-size:${Math.round(s.fontSize * 1.15)}px`;
+  const bStyle = `font-size:${s.fontSize}px`;
+  return `<div class="pvpanel" data-drag="${dragKey}" style="${inline}"><span class="pvdraghint">⠿ Arrastra para mover</span><h2 style="${tStyle}">${esc(tx.title)}</h2><div class="pvbody" style="${bStyle}">${esc(tx.body) || '(vacío: no se muestra)'}</div><div class="pvrow">${buttons}</div></div>`;
+}
+function bindPanelDrag(sc) {
+  const panel = sc.querySelector('.pvpanel[data-drag]');
+  if (!panel) return;
+  const key = panel.dataset.drag;
+  panel.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    const owner = getStyleOwner(key);
+    if (!owner) return;
+    owner.style = normStyle(owner.style);
+    panel.classList.add('dragging');
+    panel.setPointerCapture(e.pointerId);
+    const scRect = sc.getBoundingClientRect();
+    const pRect = panel.getBoundingClientRect();
+    const offX = e.clientX - pRect.left;
+    const offY = e.clientY - pRect.top;
+    const onMove = (ev) => {
+      const availW = Math.max(1, scRect.width - pRect.width);
+      const availH = Math.max(1, scRect.height - pRect.height);
+      const nx = Math.min(availW, Math.max(0, ev.clientX - scRect.left - offX));
+      const ny = Math.min(availH, Math.max(0, ev.clientY - scRect.top - offY));
+      const x = Math.round((nx / availW) * 100);
+      const y = Math.round((ny / availH) * 100);
+      owner.style.x = x;
+      owner.style.y = y;
+      panel.style.left = x + '%';
+      panel.style.top = y + '%';
+      panel.style.transform = `translate(-${x}%, -${y}%)`;
+      const ix = document.querySelector(`[data-sk="${key}"][data-sp="x"]`);
+      const iy = document.querySelector(`[data-sk="${key}"][data-sp="y"]`);
+      if (ix) ix.value = x;
+      if (iy) iy.value = y;
+    };
+    const onUp = () => {
+      panel.classList.remove('dragging');
+      panel.removeEventListener('pointermove', onMove);
+      panel.removeEventListener('pointerup', onUp);
+      panel.removeEventListener('pointercancel', onUp);
+    };
+    panel.addEventListener('pointermove', onMove);
+    panel.addEventListener('pointerup', onUp);
+    panel.addEventListener('pointercancel', onUp);
+  });
+}
+function bindMediaDrag(sc) {
+  const wrap = sc.querySelector('.pvimg-drag[data-mdrag]');
+  if (!wrap) return;
+  const idx = +wrap.dataset.mdrag;
+  wrap.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    const el = cur && cur.elements[idx];
+    if (!el) return;
+    el.mediaStyle = normMediaStyle(el.mediaStyle);
+    wrap.classList.add('dragging');
+    wrap.setPointerCapture(e.pointerId);
+    const scRect = sc.getBoundingClientRect();
+    const startClientX = e.clientX, startClientY = e.clientY;
+    const startX = el.mediaStyle.x, startY = el.mediaStyle.y;
+    const onMove = (ev) => {
+      const dxPct = ((ev.clientX - startClientX) / scRect.width) * 100;
+      const dyPct = ((ev.clientY - startClientY) / scRect.height) * 100;
+      const x = Math.round(Math.min(100, Math.max(0, startX + dxPct)));
+      const y = Math.round(Math.min(100, Math.max(0, startY + dyPct)));
+      el.mediaStyle.x = x;
+      el.mediaStyle.y = y;
+      wrap.style.left = x + '%';
+      wrap.style.top = y + '%';
+      wrap.style.transform = 'translate(-50%, -50%)';
+      const ix = document.querySelector(`[data-mk="${idx}"][data-mp="x"]`);
+      const iy = document.querySelector(`[data-mk="${idx}"][data-mp="y"]`);
+      if (ix) ix.value = x;
+      if (iy) iy.value = y;
+    };
+    const onUp = () => {
+      wrap.classList.remove('dragging');
+      wrap.removeEventListener('pointermove', onMove);
+      wrap.removeEventListener('pointerup', onUp);
+      wrap.removeEventListener('pointercancel', onUp);
+    };
+    wrap.addEventListener('pointermove', onMove);
+    wrap.addEventListener('pointerup', onUp);
+    wrap.addEventListener('pointercancel', onUp);
+  });
 }
 function drawScreen() {
   const sc = $('#pvScreen'); if (!sc || !cur) return;
@@ -294,18 +699,23 @@ function drawScreen() {
     const el = els[pv], last = pv === els.length - 1;
     if (el.type === 'text') {
       let j = pv - 1; while (j >= 0 && els[j].type === 'text') j--;
-      h = (j >= 0 ? media(els[j]) : '') + panelHtml((el.texts && el.texts[tab]) || {}, L,
-        `<span class="pvb pvmore">${L.more}</span>${last ? '' : `<span class="pvb">${L.next}</span>`}<span class="pvb g">${L.close}</span>`);
+      h = (j >= 0 ? media(els[j]) : '') + panelHtml((el.texts && el.texts[tab]) || {}, el.style, L,
+        `<span class="pvb pvmore">${L.more}</span>${last ? '' : `<span class="pvb">${L.next}</span>`}<span class="pvb g">${L.close}</span>`, String(pv));
     } else {
-      h = media(el);
+      h = media(el, pv);
       if (el.type === 'image') h += `<span class="pvb pvfloat">${last ? L.close : L.next}</span>` + (el.audioSrc ? `<span class="pvb pvsound">🔇 ${L.mute}</span>` : '');
-      const lay = activeAt(el, pvT);
-      if (lay) h += panelHtml((lay.texts && lay.texts[tab]) || {}, L, `<span class="pvb pvmore">${L.more}</span>`);
+      const li = activeLayerIdx(el, pvT);
+      if (li >= 0) {
+        const lay = el.layers[li];
+        h += panelHtml((lay.texts && lay.texts[tab]) || {}, lay.style, L, `<span class="pvb pvmore">${L.more}</span>`, `${pv}.${li}`);
+      }
     }
   }
   sc.innerHTML = h;
   const b = sc.querySelector('.pvbody'), m = sc.querySelector('.pvmore');
   if (b && m) m.style.display = b.scrollHeight > b.clientHeight + 1 ? '' : 'none';
+  bindMediaDrag(sc);
+  bindPanelDrag(sc);
 }
 
 // ---- QR (stencil o vinilo)
@@ -332,12 +742,30 @@ async function genQR() {
   } catch (e) { out.textContent = 'Error: ' + e.message; }
 }
 
+function readStyle(key, curStyle) {
+  const s = normStyle(curStyle);
+  document.querySelectorAll(`[data-sk="${key}"]`).forEach(inp => {
+    const p = inp.dataset.sp;
+    if (p === 'textColor' || p === 'bgColor' || p === 'textAlign') s[p] = inp.value;
+    else s[p] = Number(inp.value);
+  });
+  return s;
+}
+function readMediaStyle(i, curMs) {
+  const s = normMediaStyle(curMs);
+  document.querySelectorAll(`[data-mk="${i}"]`).forEach(inp => {
+    s[inp.dataset.mp] = Number(inp.value);
+  });
+  return s;
+}
 function sync() {
   if (!$('#f_name')) return;
   cur.name = $('#f_name').value;
   cur.elements.forEach((el, i) => {
     const ti = document.querySelector(`[data-ti="${i}"]`), tb = document.querySelector(`[data-tb="${i}"]`);
     if (ti && tb) { el.texts = el.texts || {}; el.texts[tab] = { title: ti.value, body: tb.value }; }
+    if (el.type === 'text') el.style = readStyle(String(i), el.style);
+    if (el.type === 'image') el.mediaStyle = readMediaStyle(i, el.mediaStyle);
     const dur = document.querySelector(`[data-dur="${i}"]`);
     if (dur) el.duration = Math.max(0, parseFloat(dur.value) || 0);
     (el.layers || []).forEach((l, j) => {
@@ -347,6 +775,7 @@ function sync() {
       l.duration = Math.max(0, parseFloat(g('ld').value) || 0);
       l.texts = l.texts || {};
       l.texts[tab] = { title: g('lt').value, body: g('lb').value };
+      l.style = readStyle(`${i}.${j}`, l.style);
     });
   });
   syncPage();
